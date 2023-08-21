@@ -8,6 +8,7 @@
     "storage"
   ],
   "action": {
+    "default_icon": "img/icon128.png",
     "default_popup": "popup/main.html"
   },
   "background": {
