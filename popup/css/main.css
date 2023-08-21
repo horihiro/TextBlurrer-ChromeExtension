@@ -1,0 +1,57 @@
+dt {
+  white-space: nowrap;
+}
+html, body {
+  width: 400px;
+}
+textarea#keywords {
+  width: 376px;
+  height: 200px;
+}
+
+input {
+  border: 1px solid #0c0c0d4d;
+  color: #737373; /* グレー */
+  display: inline-block;
+  margin: 0 4px;
+}
+/* 楕円部 */
+input[type="checkbox"] {
+  -webkit-appearance: none;    /* 消してもOK */
+  appearance: none;            /* 元々あるチェックボックスを非表示にする */
+  background-color: #0c0c0d1a; /* 楕円の色=文字色alpha10% */
+  border-radius: 8px;          /* heightの半分 */
+  height: 16px; 
+  width: 32px;                 /* heightの2倍くらい */
+}
+input[type="checkbox"]:hover {
+  background-color: #0c0c0d33;
+  border-color: #0c0c0d7f;
+}
+input[type="checkbox"]:active {
+  background-color: #0c0c0d4d;
+}
+input[type="checkbox"]:focus {
+  box-shadow: 0 0 0 1px #0a84ff inset, 0 0 0 1px #0a84ff, 0 0 0 4px #0a84ff4d;
+}
+input[type="checkbox"]:checked {
+  background-color: #0060df; /* 青 */
+  border-color: #0060df;
+}
+
+/* 中の● */
+input[type="checkbox"]::before {
+  background-color: currentColor; /* ●の色=グレー */
+  border-radius: 6px;             /* heightの半分 */
+  content: "";                    /* おまじない */
+  display: inline-block;          /* おまじない */
+  height: 12px;                   /* 楕円部のheightより2px小さいくらい */
+  margin-left: 1px;               /* 楕円部と●のすき間 */
+  margin-top: 1px;                /* 楕円部と●のすき間 */
+  transition: margin-left .2s cubic-bezier(.07, .95, 0, 1); /* ヌルっと具合は調整 */
+  width: 12px;                    /* heightに合わせる */
+}
+input[type="checkbox"]:checked::before {
+  background-color: #ffffff; /* 白（楕円部の色と調整） */
+  margin-left: 17px;         /* ●を右へ移動 */
+}

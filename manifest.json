@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Keyword Blurrer",
+  "version": "0.0.1",
+  "description": "Blurring sensitive specified keyword.",
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup/main.html"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content/js/jquery-3.7.0.min.js",
+        "content/js/main.js"
+      ],
+      "css": [
+        "content/css/blur.css"
+      ]
+    }
+  ]
+}
