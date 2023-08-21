@@ -10,6 +10,8 @@ This extension is not published yet.
 To try this, the following steps are neede.
 
 1. clone this repository
-1. open `chrome://extension`
+1. open `chrome://extensions`
 1. enable `Developer mode` and click `Load Unpacked`
-1. select the directory created by step 1.
+1. select the directory created by cloning at step 1.
+
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/0656fd3d-41da-4f97-a614-da232a3d700d)
