@@ -1,5 +1,6 @@
 (async () => {
   const w = window;
+  const exElmList = ['title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
   const blur = (keywords) => {
     if (w.__observer) return;
     const blurKeywords = (keywords) => {
@@ -7,7 +8,7 @@
       keywords.forEach((keyword) => {
         console.log(`Searching keyword ${keyword}`);
         Array.prototype.filter.call($(`:contains("${keyword}")`), (n) => {
-          return !['title', 'script', 'noscript', 'style', 'meta', 'link', 'head'].includes(n.nodeName.toLowerCase())
+          return !exElmList.includes(n.nodeName.toLowerCase())
             && Array.prototype.filter.call(n.childNodes, (c) => {
               return c.nodeName === '#text' && c.data.includes(keyword);
             }).length > 0;
