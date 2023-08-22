@@ -9,6 +9,11 @@ textarea#keywords {
   height: 200px;
 }
 
+div.container {
+  text-align: right;
+  padding-right: 16px;
+}
+
 input {
   border: 1px solid #0c0c0d4d;
   color: #737373; /* グレー */
