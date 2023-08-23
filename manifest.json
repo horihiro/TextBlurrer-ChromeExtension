@@ -17,8 +17,10 @@
   },
   "content_scripts": [
     {
+      "all_frames": true,
       "matches": [
-        "<all_urls>"
+        "https://*/*",
+        "http://*/*"
       ],
       "js": [
         "content/js/jquery-3.7.0.min.js",
