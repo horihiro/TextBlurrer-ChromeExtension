@@ -42,13 +42,17 @@
   const unblur = () => {
     if (!w.__observer) return;
     w.__observer.disconnect();
-    const m = w.document.querySelectorAll('.blurred');
-    if (m.length > 0) {
-      Array.prototype.forEach.call(m, (n) => {
-        !!n.parentNode && (n.parentNode.innerHTML = n.parentNode.innerHTML.replace(/<span class="blurred">([^<]*)<\/span>/g, '$1'))
-      });
-    }
     delete w.__observer
+    const m = w.document.querySelectorAll('.blurred');
+    if (m.length === 0) return;
+
+    Array.prototype.forEach.call(m, (n) => {
+      n.childNodes.forEach((c) => {
+        n.parentNode.insertBefore(c, n);
+      });
+      n.parentNode.removeChild(n);
+      // !!n.parentNode && (n.parentNode.innerHTML = n.parentNode.innerHTML.replace(/<span class="blurred">([^<]*)<\/span>/g, '$1'))
+    });
   }
 
   const initialStatus = await chrome.runtime.sendMessage({ request: 'getKeywordsToBeBlurred' });
