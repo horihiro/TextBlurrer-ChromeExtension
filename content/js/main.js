@@ -18,13 +18,22 @@
             }).length > 0
             && getStateOfContentEditable(n) !== 'true';
         }).forEach((n) => {
-          const re = new RegExp(keyword.replace(/([()?$])/g, "\\$1"), 'g');
-          try {
-            const size = Math.floor(parseFloat(getComputedStyle(n).fontSize)/4);
-            (!n.className || !n.className.includes('blurred')) && (n.innerHTML = n.innerHTML.replace(re, `<span class="blurred" ${size>5 ? `style="filter: blur(${size}px)"` : ''}>${keyword}</span>`));
-          } catch (e) {
-            n.innerHTML = n.innerHTML.replace(re, ``);
-          }
+          if (n.className && n.className.includes('blurred')) return;
+          const size = Math.floor(parseFloat(getComputedStyle(n).fontSize)/4);
+          n.childNodes.forEach((c) => {
+            if (c.nodeName !== "#text" || !c.nodeValue.includes(keyword)) return;
+            const referenceNode = c.nextSibling;
+            const textArray = c.nodeValue.split(`${keyword}`);
+            c.nodeValue = textArray.shift();
+            textArray.forEach((t) => {
+              const blurredSpan = document.createElement('span');
+              blurredSpan.className = 'blurred';
+              blurredSpan.innerText = keyword;
+              if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
+              c.parentNode.insertBefore(blurredSpan, referenceNode);
+              c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
+            });
+          });
         });
       });
     }
