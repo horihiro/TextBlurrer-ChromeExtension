@@ -20,7 +20,8 @@
         }).forEach((n) => {
           const re = new RegExp(keyword.replace(/([()?$])/g, "\\$1"), 'g');
           try {
-            (!n.className || !n.className.includes('blurred')) && (n.innerHTML = n.innerHTML.replace(re, `<span class="blurred">${keyword}</span>`));
+            const size = Math.floor(parseFloat(getComputedStyle(n).fontSize)/4);
+            (!n.className || !n.className.includes('blurred')) && (n.innerHTML = n.innerHTML.replace(re, `<span class="blurred" ${size>5 ? `style="filter: blur(${size}px)"` : ''}>${keyword}</span>`));
           } catch (e) {
             n.innerHTML = n.innerHTML.replace(re, ``);
           }
@@ -46,12 +47,19 @@
     const m = w.document.querySelectorAll('.blurred');
     if (m.length === 0) return;
 
-    Array.prototype.forEach.call(m, (n) => {
+    m.forEach((n) => {
+      const p = n.parentNode;
       n.childNodes.forEach((c) => {
-        n.parentNode.insertBefore(c, n);
+        p.insertBefore(c, n);
       });
-      n.parentNode.removeChild(n);
-      // !!n.parentNode && (n.parentNode.innerHTML = n.parentNode.innerHTML.replace(/<span class="blurred">([^<]*)<\/span>/g, '$1'))
+      p.removeChild(n);
+      for (let i=p.childNodes.length-1; i>=1; i--) {
+        const c = p.childNodes[i];
+        const s = p.childNodes[i-1];
+        if (!s || c.nodeName !== '#text' || s.nodeName !== '#text') continue;
+        s.nodeValue += c.nodeValue;
+        c.nodeValue = "";
+      }
     });
   }
 
