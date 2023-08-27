@@ -10,7 +10,10 @@ This extension is not published yet.
 
 To try this, the following steps are neede.
 
-1. clone this repository
+1. get contents of this repository
+   1. clone this repository  
+      or
+   1. download zip file and extract it
 1. open `chrome://extensions`
 1. enable `Developer mode` and click `Load Unpacked`
 1. select the directory created by cloning at step 1.
