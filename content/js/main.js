@@ -3,7 +3,7 @@
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable !== 'inherit') return element.contentEditable;
-    return element.parentNode ? getStateOfContentEditable(element.parentNode) : ''; 
+    return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
   const blur = (keywords) => {
     if (w.__observer) return;
@@ -19,7 +19,7 @@
             && getStateOfContentEditable(n) !== 'true';
         }).forEach((n) => {
           if (n.className && n.className.includes('blurred')) return;
-          const size = Math.floor(parseFloat(getComputedStyle(n).fontSize)/4);
+          const size = Math.floor(parseFloat(getComputedStyle(n).fontSize) / 4);
           n.childNodes.forEach((c) => {
             if (c.nodeName !== "#text" || !c.nodeValue.includes(keyword)) return;
             const referenceNode = c.nextSibling;
@@ -62,9 +62,9 @@
         p.insertBefore(c, n);
       });
       p.removeChild(n);
-      for (let i=p.childNodes.length-1; i>=1; i--) {
+      for (let i = p.childNodes.length - 1; i >= 1; i--) {
         const c = p.childNodes[i];
-        const s = p.childNodes[i-1];
+        const s = p.childNodes[i - 1];
         if (!s || c.nodeName !== '#text' || s.nodeName !== '#text') continue;
         s.nodeValue += c.nodeValue;
         c.nodeValue = "";
@@ -72,15 +72,21 @@
     });
   }
 
-  const initialStatus = await chrome.runtime.sendMessage({ request: 'getKeywordsToBeBlurred' });
-  let keywordArray = initialStatus?.keywords?.split(/\n/).map(k => k.trim()).filter(k => k !== '') || [];
-  initialStatus.status && blur(keywordArray);
+  const initialStatus = await chrome.storage.local.get(["status", "keywords"]);
+  if (initialStatus.status) {
+    blur(initialStatus?.keywords?.split(/\n/).map(k => k.trim()).filter(k => k !== '') || []);
+  }
 
-  const port = chrome.runtime.connect({ name: 'updateKeywords' });
-  port.onMessage.addListener((msg => {
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area !== 'local' || !changes.keywords && !changes.status) return;
+
+    const msg = {
+      keywords: changes.keywords?.newValue,
+      status: changes.status?.newValue || undefined
+    };
     unblur();
     if (!msg.status && !msg.keywords) return;
-    if (msg.keywords) keywordArray = msg.keywords.split(/\n/).map(k => k.trim()).filter(k => k !== '') || [];
-    blur(keywordArray);
-  }));
+    const keywords = msg.keywords || (await chrome.storage.local.get(["keywords"])).keywords || "";
+    blur(keywords.split(/\n/).map(k => k.trim()).filter(k => k !== '') || []);
+  });
 })();
