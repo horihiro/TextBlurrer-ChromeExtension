@@ -5,13 +5,26 @@
     if (element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
+  const getElementsByTextContent = (text, root) => {
+    const nodes = [];
+    root.childNodes.forEach((n) => {
+      if (n.nodeName !== '#text') {
+        nodes.push(...getElementsByTextContent(text, n));
+        return;
+      }
+      if (!n.nodeValue.includes(text)) return;
+      nodes.push(n.parentNode);
+    });
+    return nodes;
+  };
   const blur = (keywords) => {
     if (w.__observer) return;
     const blurKeywords = (keywords) => {
       if (keywords.length === 0) return;
       keywords.forEach((keyword) => {
         console.log(`Searching keyword ${keyword}`);
-        Array.prototype.filter.call($(`:contains("${keyword}")`), (n) => {
+        // Array.prototype.filter.call($(`:contains("${keyword}")`), (n) => {
+        getElementsByTextContent(keyword, document.body).filter((n) => {
           return !exElmList.includes(n.nodeName.toLowerCase())
             && Array.prototype.filter.call(n.childNodes, (c) => {
               return c.nodeName === '#text' && c.data.includes(keyword);
