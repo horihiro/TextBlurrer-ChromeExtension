@@ -8,7 +8,7 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/ae3133f3-
 # Try this
 This extension is not published yet.
 
-To try this, the following steps are neede.
+To try this, the following steps are needed.
 
 1. get contents of this repository
    1. clone this repository  
