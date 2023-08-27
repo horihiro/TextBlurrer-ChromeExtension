@@ -2,18 +2,14 @@
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
   const getStateOfContentEditable = (element) => {
-    if (element.contentEditable !== 'inherit') return element.contentEditable;
+    if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
-  const getElementsByTextContent = (text, root) => {
+  const getElementsByNodeValue = (value, target) => {
     const nodes = [];
-    root.childNodes.forEach((n) => {
-      if (n.nodeName !== '#text') {
-        nodes.push(...getElementsByTextContent(text, n));
-        return;
-      }
-      if (!n.nodeValue.includes(text)) return;
-      nodes.push(n.parentNode);
+    (target || document).childNodes.forEach((n) => {
+      !n.nodeValue && nodes.push(...getElementsByNodeValue(value, n));
+      n.nodeValue?.includes(value) && nodes.push(n.parentNode);
     });
     return nodes;
   };
@@ -23,11 +19,10 @@
       if (keywords.length === 0) return;
       keywords.forEach((keyword) => {
         console.log(`Searching keyword ${keyword}`);
-        // Array.prototype.filter.call($(`:contains("${keyword}")`), (n) => {
-        getElementsByTextContent(keyword, document.body).filter((n) => {
+        getElementsByNodeValue(keyword, document.body).filter((n) => {
           return !exElmList.includes(n.nodeName.toLowerCase())
             && Array.prototype.filter.call(n.childNodes, (c) => {
-              return c.nodeName === '#text' && c.data.includes(keyword);
+              return c.nodeName === '#text' && c.nodeValue.includes(keyword);
             }).length > 0
             && getStateOfContentEditable(n) !== 'true';
         }).forEach((n) => {
