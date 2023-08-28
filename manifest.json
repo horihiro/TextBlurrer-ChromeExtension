@@ -5,7 +5,6 @@
   "version_name": "0.0.2 alpha",
   "description": "Blurring sensitive specified text/keyword.",
   "permissions": [
-    "tabs",
     "storage"
   ],
   "action": {
