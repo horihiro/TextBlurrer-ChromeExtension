@@ -11,8 +11,14 @@
       } catch (e) {
         console.error(e);
       }
-      window.close();
+      document.querySelector('#patternInput').focus();
     });
     document.querySelector('#patternInput').focus();
+    const mode = (await chrome.storage.local.get(["mode"])).mode;
+    Array.prototype.some.call(document.querySelector('#modeSelect').options, (opt) => {
+      if (opt.value !== mode) return false;
+      opt.selected = true;
+      return true;
+    });
   });
 })();
