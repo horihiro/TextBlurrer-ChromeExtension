@@ -1,62 +1,149 @@
-dt {
-  white-space: nowrap;
-}
-html, body {
-  width: 400px;
-}
-textarea#keywords {
-  width: 376px;
-  height: 200px;
+body textarea {
+  width: 350px;
+  padding: 10px;
+  display: flex;
 }
 
-div.container {
-  text-align: right;
-  padding-right: 16px;
+body {
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #333;
+  color: #fff;
 }
 
-input {
-  border: 1px solid #0c0c0d4d;
-  color: #737373; /* グレー */
+textarea {
+  background-color: #444;
+  padding-left: 0px;
+  border: none;
+  color: #fff;
+  resize: vertical;
+  max-height: 500px;
+  border: 1px solid rgb(170, 170, 170);
+  border-radius: 3px;
+
+  --l: 20px;
+  line-height: var(--l);
+}
+
+textarea:disabled {
+  color: gray;
+}
+
+.switch {
+  cursor: pointer;
+}
+
+#toggleButton {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.slider {
+  position: relative;
   display: inline-block;
-  margin: 0 4px;
-}
-/* 楕円部 */
-input[type="checkbox"] {
-  -webkit-appearance: none;    /* 消してもOK */
-  appearance: none;            /* 元々あるチェックボックスを非表示にする */
-  background-color: #0c0c0d1a; /* 楕円の色=文字色alpha10% */
-  border-radius: 8px;          /* heightの半分 */
-  height: 16px; 
-  width: 32px;                 /* heightの2倍くらい */
-}
-input[type="checkbox"]:hover {
-  background-color: #0c0c0d33;
-  border-color: #0c0c0d7f;
-}
-input[type="checkbox"]:active {
-  background-color: #0c0c0d4d;
-}
-input[type="checkbox"]:focus {
-  box-shadow: 0 0 0 1px #0a84ff inset, 0 0 0 1px #0a84ff, 0 0 0 4px #0a84ff4d;
-}
-input[type="checkbox"]:checked {
-  background-color: #0060df; /* 青 */
-  border-color: #0060df;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+  margin-right: 10px;
 }
 
-/* 中の● */
-input[type="checkbox"]::before {
-  background-color: currentColor; /* ●の色=グレー */
-  border-radius: 6px;             /* heightの半分 */
-  content: "";                    /* おまじない */
-  display: inline-block;          /* おまじない */
-  height: 12px;                   /* 楕円部のheightより2px小さいくらい */
-  margin-left: 1px;               /* 楕円部と●のすき間 */
-  margin-top: 1px;                /* 楕円部と●のすき間 */
-  transition: margin-left .2s cubic-bezier(.07, .95, 0, 1); /* ヌルっと具合は調整 */
-  width: 12px;                    /* heightに合わせる */
+.slider::before {
+  position: absolute;
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: white;
+  top: 1px;
+  left: 1px;
 }
-input[type="checkbox"]:checked::before {
-  background-color: #ffffff; /* 白（楕円部の色と調整） */
-  margin-left: 17px;         /* ●を右へ移動 */
+
+input:checked+.slider {
+  background-color: #2196F3;
+}
+
+input:checked+.slider::before {
+  transform: translateX(20px);
+}
+
+input[type="checkbox"] {
+  display: none;
+}
+
+.button-container,
+.checkbox-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.checkbox-container {
+  margin-top: -30px;
+}
+
+input[type="checkbox"].custom-checkbox {
+  opacity: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+}
+
+input[type="checkbox"].custom-checkbox+span::before {
+  cursor: pointer;
+}
+
+input[type="checkbox"]:disabled.custom-checkbox+span::before {
+  cursor: default;
+}
+
+input[type="checkbox"].custom-checkbox+span::before {
+  display: inline-block;
+  content: '';
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+
+  background-color: #999;
+  background-repeat: no-repeat;
+}
+
+input[type="checkbox"]:disabled:checked.custom-checkbox+span::before {
+  -webkit-mask: none;
+  background-repeat: no-repeat;
+  background-position: 2px 2px;
+  background-color: #ccc;
+}
+
+input[type="checkbox"]:checked.custom-checkbox+span::before {
+  -webkit-mask: none;
+  background-repeat: no-repeat;
+  background-position: 2px 2px;
+  background-color: #2196F3;
+  border-radius: 3px;
+}
+
+input[type="checkbox"].mode-regexp+span::before {
+  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.mode-regexp+span::before {
+  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg");
+}
+
+input[type="checkbox"].case-sensitive+span::before {
+  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.case-sensitive+span::before {
+  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg");
+}
+
+#applyButton {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-self: flex-end;
 }

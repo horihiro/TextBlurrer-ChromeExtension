@@ -2,20 +2,40 @@
 <html>
 
 <head>
-  <title>Popup</title>
+  <title>Text Blurrer Popup</title>
   <link rel="stylesheet" type="text/css" href="./css/main.css">
   <script src="./js/main.js"></script>
-
+  <style>
+  </style>
 </head>
 
 <body>
-  <input type="checkbox" id="tglEnabled">Enabled</input>
+  <div id="toggleButton">
+    <label class="switch">
+      <input type="checkbox" id="statusCheckbox">
+      <span class="slider"></span>
+    </label>
+    <span>Enabled</span>
+  </div>
 
-  <h2>Keywords to be blurred</h2>
-  <div class="container">
-    Enter one keyword to be blurred in each line.
-  <textarea id="keywords"></textarea>
-    <button id="btnUpdate">Update</button>
+  <div class="settings-conainer">
+
+    <div class="checkbox-container">
+      <label>
+        <input type="checkbox" class="custom-checkbox case-sensitive" id="caseCheckbox">
+        <span title="Match case"></span>
+      </label>
+      <label>
+        <input type="checkbox" class="custom-checkbox mode-regexp" id="regexpCheckbox">
+        <span title="Use Regular Expression"></span>
+      </label>
+    </div>
+
+    <textarea id="patternInput" placeholder="" rows="10" wrap="off"></textarea>
+
+    <div class="button-container">
+      <button id="applyButton">apply</button>
+    </div>
   </div>
 </body>
 
