@@ -1,64 +1,149 @@
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 10px;
+body textarea {
   width: 350px;
+  padding: 10px;
+  display: flex;
+}
+
+body {
+  flex-direction: column;
+  align-items: flex-start;
   background-color: #333;
   color: #fff;
 }
 
-.control {
-  margin-bottom: 15px;
-}
-
-.button-container {
-  text-align: right;
-  margin-top: 10px;
-}
-
-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-select,
 textarea {
-  width: 100%;
-  padding: 8px;
-  border: none;
   background-color: #444;
-  color: #fff;
-  border-radius: 5px;
-  font-family: inherit;
-}
-
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url('arrow-down-icon.png');
-  background-size: 12px;
-  background-position: right center;
-  background-repeat: no-repeat;
-  cursor: pointer;
-}
-
-textarea {
-  resize: vertical;
-  width: calc(100% - 16px)
-}
-
-button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: #fff;
+  padding-left: 0px;
   border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
+  color: #fff;
+  resize: vertical;
+  max-height: 500px;
+  border: 1px solid rgb(170, 170, 170);
+  border-radius: 3px;
+
+  --l: 20px;
+  line-height: var(--l);
 }
 
-button:hover {
-  background-color: #0056b3;
+textarea:disabled {
+  color: gray;
+}
+
+.switch {
+  cursor: pointer;
+}
+
+#toggleButton {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: white;
+  top: 1px;
+  left: 1px;
+}
+
+input:checked+.slider {
+  background-color: #2196F3;
+}
+
+input:checked+.slider::before {
+  transform: translateX(20px);
+}
+
+input[type="checkbox"] {
+  display: none;
+}
+
+.button-container,
+.checkbox-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.checkbox-container {
+  margin-top: -30px;
+}
+
+input[type="checkbox"].custom-checkbox {
+  opacity: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+}
+
+input[type="checkbox"].custom-checkbox+span::before {
+  cursor: pointer;
+}
+
+input[type="checkbox"]:disabled.custom-checkbox+span::before {
+  cursor: default;
+}
+
+input[type="checkbox"].custom-checkbox+span::before {
+  display: inline-block;
+  content: '';
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+
+  background-color: #999;
+  background-repeat: no-repeat;
+}
+
+input[type="checkbox"]:disabled:checked.custom-checkbox+span::before {
+  -webkit-mask: none;
+  background-repeat: no-repeat;
+  background-position: 2px 2px;
+  background-color: #ccc;
+}
+
+input[type="checkbox"]:checked.custom-checkbox+span::before {
+  -webkit-mask: none;
+  background-repeat: no-repeat;
+  background-position: 2px 2px;
+  background-color: #2196F3;
+  border-radius: 3px;
+}
+
+input[type="checkbox"].mode-regexp+span::before {
+  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.mode-regexp+span::before {
+  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg");
+}
+
+input[type="checkbox"].case-sensitive+span::before {
+  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.case-sensitive+span::before {
+  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg");
+}
+
+#applyButton {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-self: flex-end;
 }
