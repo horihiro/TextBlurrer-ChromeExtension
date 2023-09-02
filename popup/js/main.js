@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     patternInput.focus();
   });
   const hasCaptureGroups = (regexStr) => {
-    const simpler = new RegExp(regexStr).source.replace(/\\.|\[(?:\\.|.)*?\]/g, "x");
+    const simpler = new RegExp(regexStr).source.replace(/\\.|\[(?:\\.|[^.])*?\]/g, "x");
     return /\([^?]/.test(simpler) || /\(\?</.test(simpler)
   }
   const validateRegExp = (pattern) => {
