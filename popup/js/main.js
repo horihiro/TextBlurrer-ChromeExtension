@@ -121,10 +121,10 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       if (onlyLineCounting) {
       } else if (!(await validateRegExp(curr))) {
         result.isValid = false;
-        result.reason = 'RegExp object cannot be created from this string.';
+        result.reason = 'Failed to create RegExp object. Check if this is a valid regular expression string.';
       } else if (await hasCaptureGroups(curr)) {
         result.isValid = false;
-        result.reason = 'This string might contain `Capture Group`.';
+        result.reason = 'This string might contain capture-group that should be non-capture-group. Replace a pair of `(` and `)` to `(?:` and `)`.';
       }
       array.push(result);
       return array;
