@@ -17,7 +17,7 @@ textarea {
   border: none;
   color: #fff;
   resize: vertical;
-  max-height: 500px;
+  max-height: 490px;
   border: 1px solid rgb(170, 170, 170);
   border-radius: 3px;
 
@@ -97,6 +97,7 @@ input[type="checkbox"].custom-checkbox+span::before {
 
 input[type="checkbox"]:disabled.custom-checkbox+span::before {
   cursor: default;
+  background-color: gray;
 }
 
 input[type="checkbox"].custom-checkbox+span::before {
@@ -106,7 +107,7 @@ input[type="checkbox"].custom-checkbox+span::before {
   height: 20px;
   margin-left: 2px;
 
-  background-color: #999;
+  background-color: #ddd;
   background-repeat: no-repeat;
 }
 
@@ -146,4 +147,15 @@ input[type="checkbox"]:checked.case-sensitive+span::before {
   display: flex;
   justify-content: flex-end;
   align-self: flex-end;
+}
+
+#_bufferTextArea {
+  border: none;
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
 }
