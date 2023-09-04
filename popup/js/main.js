@@ -183,6 +183,7 @@ textarea#${patternInput.id} {
     patternInput.title = '';
     const row = parseInt((e.offsetY + patternInput.scrollTop - 10) / 20) + 1;
     if (pointedRow == row) return;
+    pointedRow = row;
     validationResults.reduce((prev, curr) => {
       if (prev < 0) return -1;
       prev -= curr.numOfLine;
@@ -190,9 +191,8 @@ textarea#${patternInput.id} {
       patternInput.title = curr.reason || '';
       return -1;
     }, row);
-    console.log(row);
   }, false);
-  patternInput.addEventListener('mousemove', () => {
+  patternInput.addEventListener('mouseout', () => {
     pointedRow = -1;
   });
 
