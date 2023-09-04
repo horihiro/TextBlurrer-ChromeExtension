@@ -121,10 +121,10 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       if (onlyLineCounting) {
       } else if (!(await validateRegExp(curr))) {
         result.isValid = false;
-        result.reason = 'Failed to create RegExp object. Check if this is a valid regular expression string.';
+        result.reason = 'Failed to create RegExp object.\nCheck if this is a valid regular expression string.';
       } else if (await hasCaptureGroups(curr)) {
         result.isValid = false;
-        result.reason = 'This string might contain capture-group that should be non-capture-group. Replace a pair of `(` and `)` to `(?:` and `)`.';
+        result.reason = 'This string might contain capture-group that should be non-capture-group.\nReplace a pair of `(` and `)` to `(?:` and `)`.';
       }
       array.push(result);
       return array;
@@ -178,6 +178,23 @@ textarea#${patternInput.id} {
     if (patternInput.scrollTop < 14) patternInput.scrollTop = 0;
   });
   patternInput.addEventListener('input', renderBackground);
+  let pointedRow = -1;
+  patternInput.addEventListener('mousemove', (e) => {
+    patternInput.title = '';
+    const row = parseInt((e.offsetY + patternInput.scrollTop - 10) / 20) + 1;
+    if (pointedRow == row) return;
+    validationResults.reduce((prev, curr) => {
+      if (prev < 0) return -1;
+      prev -= curr.numOfLine;
+      if (prev > 0) return prev;
+      patternInput.title = curr.reason || '';
+      return -1;
+    }, row);
+    console.log(row);
+  }, false);
+  patternInput.addEventListener('mousemove', () => {
+    pointedRow = -1;
+  });
 
   const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
   statusCheckbox.checked = status !== 'disabled';
