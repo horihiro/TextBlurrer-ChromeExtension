@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     return new Promise((resolve) => {
       if (regexStr === '') resolve(false);
       try {
-        const simpler = new RegExp(regexStr).source.replace(/\\.|\[(?:\\.|[^.])*?\]/g, "x");
+        const simpler = new RegExp(regexStr).source.replace(/\\.|\[[^\]]*\]/g, "x");
         resolve(/\([^?]/.test(simpler) || /\(\?</.test(simpler));
       } catch {
         resolve(true);
