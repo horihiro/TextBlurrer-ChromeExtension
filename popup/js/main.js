@@ -1,9 +1,139 @@
 document.addEventListener('DOMContentLoaded', async (e) => {
+  const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
+
   const applyButton = document.querySelector('#applyButton');
   const patternInput = document.querySelector('#patternInput');
   const statusCheckbox = document.querySelector('#statusCheckbox');
   const caseCheckbox = document.querySelector('#caseCheckbox');
-  const regexpCheckbox = document.querySelector('#regexpCheckbox')
+  const regexpCheckbox = document.querySelector('#regexpCheckbox');
+  const _bufferTextArea = document.querySelector('#_bufferTextArea')
+
+  const minRowTextArea = 10;
+  const styleTextArea = getComputedStyle(patternInput);
+  const textAreaPaddingLeft = parseInt(styleTextArea.getPropertyValue('padding-left'));
+  const textAreaPaddingTop = parseInt(styleTextArea.getPropertyValue('padding-top'));
+  const textAreaLineHeight = parseInt(styleTextArea.getPropertyValue('line-height'));
+
+  let savedKeywords = '';
+  let savedMatchCase = false;
+  let savedMode = false;
+  let validationResults = [];
+  let pointedRow = -1;
+
+  const hasCaptureGroups = (regexStr) => {
+    return new Promise((resolve) => {
+      if (regexStr === '') resolve(false);
+      try {
+        const simpler = new RegExp(regexStr).source.replace(/\\.|\[[^\]]*\]/g, "x");
+        resolve(/\([^?]/.test(simpler) || /\(\?</.test(simpler));
+      } catch {
+        resolve(true);
+      }
+    });
+  }
+  const validateRegExp = (pattern) => {
+    return new Promise((resolve) => {
+      if (pattern === '') resolve(true);
+      try {
+        new RegExp(pattern);
+        resolve(true);
+      } catch {
+        resolve(false);
+      }
+    });
+  }
+
+  // based on https://stackoverflow.com/questions/3697096/finding-number-of-lines-in-an-html-textarea#answer-45252132
+  const getLineCountForRenderedText = (textarea, text) => {
+    return new Promise((resolve) => {
+      const cs = window.getComputedStyle(textarea);
+      const pl = parseInt(cs.paddingLeft);
+      const pr = parseInt(cs.paddingRight);
+      const lh = parseInt(cs.lineHeight);
+
+      // [cs.lineHeight] may return 'normal', which means line height = font size.
+      if (isNaN(lh)) lh = parseInt(cs.fontSize);
+
+      // Copy content width.
+      _bufferTextArea.style.width = (textarea.clientWidth - pl - pr) + 'px';
+
+      // Copy text properties.
+      _bufferTextArea.style.font = cs.font;
+      _bufferTextArea.style.letterSpacing = cs.letterSpacing;
+      _bufferTextArea.style.whiteSpace = cs.whiteSpace;
+      _bufferTextArea.style.wordBreak = cs.wordBreak;
+      _bufferTextArea.style.wordSpacing = cs.wordSpacing;
+      _bufferTextArea.style.wordWrap = cs.wordWrap;
+
+      // Copy value.
+      _bufferTextArea.value = text;
+
+      const result = Math.floor(_bufferTextArea.scrollHeight / lh);
+      if (result == 0) result = 1;
+      resolve(result);
+    });
+  };
+
+  const validateLines = async (lines, onlyLineCounting) => {
+    return await lines.reduce(async (prev, curr) => {
+      const numOfLine = await getLineCountForRenderedText(patternInput, curr);
+      const array = await prev;
+      const result = {
+        numOfLine,
+        isValid: true
+      };
+      if (onlyLineCounting) {
+      } else if (!(await validateRegExp(curr))) {
+        result.isValid = false;
+        result.reason = 'Failed to create RegExp object.\nCheck if this is a valid regular expression string.';
+      } else if (await hasCaptureGroups(curr)) {
+        result.isValid = false;
+        result.reason = 'This string might contain capture-group that should be non-capture-group.\nReplace a pair of `(` and `)` to `(?:` and `)`.';
+      }
+      array.push(result);
+      return array;
+    }, []);
+  }
+
+  const renderBackground = async () => {
+    const lines = patternInput.value.split(/\n/);
+    if (lines.length == 0) {
+      applyButton.disabled = false;
+      return;
+    }
+    if (regexpCheckbox.checked) {
+      applyButton.disabled = false;
+    }
+    validationResults = await validateLines(lines, !regexpCheckbox.checked);
+    applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
+    const re = /\*(\d+)( - [\d.]+px\))$/;
+    const bgColors = validationResults.reduce((prev, curr, pos, array) => {
+      const backgroundColor = curr.isValid ? '#444' : '#FF4500';
+      if (pos == 0) {
+        prev.push(`${backgroundColor} calc(var(--l)*0 - ${patternInput.scrollTop}px) calc(var(--l)*${curr.numOfLine} - ${patternInput.scrollTop}px)`);
+        return prev;
+      }
+      const start = parseInt(prev[prev.length - 1].match(re)[1]);
+      if (curr.isValid == array[pos - 1].isValid) {
+        prev[prev.length - 1] = prev[prev.length - 1].replace(re, `*${start + curr.numOfLine}$2`);
+        return prev;
+      }
+      prev.push(`${backgroundColor} calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + curr.numOfLine} - ${patternInput.scrollTop}px)`);
+      return prev;
+    }, []);
+    if (bgColors.length > 0) {
+      const start = parseInt(bgColors[bgColors.length - 1].match(re)[1]);
+      bgColors.push(`#444 calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + 1} - ${patternInput.scrollTop}px)`);
+      patternInput.setAttribute('rows', start > minRowTextArea ? start : minRowTextArea);
+    }
+
+    document.querySelector('head > style').innerHTML = `
+textarea#${patternInput.id} {
+  background: linear-gradient(
+  ${bgColors.join(',\n  ')}
+  ) 0 8px no-repeat, #444;
+}`;
+  }
 
   applyButton.addEventListener('click', async (e) => {
     await chrome.storage.local.set({
@@ -13,94 +143,78 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       'matchCase': caseCheckbox.checked
     });
     patternInput.focus();
+    savedKeywords = patternInput.value;
+    savedMode = regexpCheckbox.checked;
+    savedMatchCase = caseCheckbox.checked;
+    e.target.disabled = true;
   });
 
   statusCheckbox.addEventListener('change', async (e) => {
     caseCheckbox.disabled =
       regexpCheckbox.disabled =
-      patternInput.disabled =
-      applyButton.disabled = !e.target.checked;
+      patternInput.disabled = !e.target.checked;
+    applyButton.disabled = !e.target.checked || !validationResults.every(r => r.isValid);
 
     await chrome.storage.local.set({
       "status": !e.target.checked ? 'disabled' : ''
     });
-    if (!e.target.checked) return;
-
-    patternInput.focus();
-  });
-  regexpCheckbox.addEventListener('change', (e) => {
-    patternInput.focus();
-    patternInput.style.background = '#444';
     if (!e.target.checked) {
       document.querySelector('head > style').innerHTML = '';
       return;
     }
-    patternInput.style.background = '';
-    applyButton.disabled = false;
-    renderBackground(patternInput.value.split(/\n/));
-  });
-  caseCheckbox.addEventListener('change', (e) => {
+
+    await renderBackground();
+
     patternInput.focus();
   });
-  const hasCaptureGroups = (regexStr) => {
-    const simpler = new RegExp(regexStr).source.replace(/\\.|\[(?:\\.|[^.])*?\]/g, "x");
-    return /\([^?]/.test(simpler) || /\(\?</.test(simpler)
-  }
-  const validateRegExp = (pattern) => {
-    if (pattern === '') return true;
-    try {
-      new RegExp(pattern);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-  const renderBackground = (lines) => {
-    const backgroundColors = [];
+  regexpCheckbox.addEventListener('change', async (e) => {
+    patternInput.focus();
+    patternInput.style.background = '#444';
 
-    lines.forEach((line, pos) => {
-      if (!validateRegExp(line) || hasCaptureGroups(line)) {
-        applyButton.disabled = true;
-        console.log(patternInput.scrollTop);
-        backgroundColors.push(`#FF4500 calc(var(--l)*${pos} - ${patternInput.scrollTop}px) calc(var(--l)*${pos + 1} - ${patternInput.scrollTop}px)`);
-      } else {
-        backgroundColors.push(`#444 calc(var(--l)*${pos} - ${patternInput.scrollTop}px) calc(var(--l)*${pos + 1} - ${patternInput.scrollTop}px)`);
-      }
-    });
-    backgroundColors.push(`#444 calc(var(--l)*${lines.length}) calc(var(--l)*${lines.length + 1})`);
-    document.querySelector('head > style').innerHTML = `
-textarea {
-
-background: linear-gradient(
-  ${backgroundColors.join(',\n  ')}
-) 0 8px no-repeat, #444;
-}`;
-  }
-  const renderBackgroundWrapper = (e) => {
-    const lines = e.target.value.split(/\n/);
-    if (lines.length == 0) {
-      applyButton.disabled = false;
+    patternInput.style.background = '';
+    await renderBackground();
+    if (e.target.checked) {
       return;
     }
-    if (regexpCheckbox.checked) {
-      applyButton.disabled = false;
-      renderBackground(lines)
-    }
-    const numOfRows = lines.length;
-    if (numOfRows < 10) return;
-    e.target.setAttribute('rows', numOfRows);
-  }
-  patternInput.addEventListener('scroll', renderBackgroundWrapper);
-  patternInput.addEventListener('scroll', (e) => {
-    if (patternInput.scrollLeft == 10) patternInput.scrollLeft = 0;
+    document.querySelector('head > style').innerHTML = '';
   });
-  patternInput.addEventListener('input', renderBackgroundWrapper);
+  caseCheckbox.addEventListener('change', async (e) => {
+    await renderBackground();
+    patternInput.focus();
+  });
 
-  const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
+  patternInput.addEventListener('scroll', renderBackground);
+  patternInput.addEventListener('scroll', () => {
+    if (patternInput.scrollLeft < textAreaPaddingLeft) patternInput.scrollLeft = 0;
+    if (patternInput.scrollTop < textAreaPaddingTop) patternInput.scrollTop = 0;
+  });
+  patternInput.addEventListener('input', renderBackground);
+  patternInput.addEventListener('mousemove', (e) => {
+    if (e.offsetY + patternInput.scrollTop - textAreaPaddingTop < 0) return;
+    const row = parseInt((e.offsetY + patternInput.scrollTop - textAreaPaddingTop) / textAreaLineHeight) + 1;
+    if (pointedRow == row) return;
+    pointedRow = row;
+    validationResults.reduce((prev, curr) => {
+      if (prev < 0) return -1;
+      prev -= curr.numOfLine;
+      if (prev > 0) {
+        patternInput.title = '';
+        return prev;
+      }
+      patternInput.setAttribute('title', curr.reason || '');
+      return -1;
+    }, row);
+    console.debug(row, patternInput.title);
+  }, false);
+  patternInput.addEventListener('mouseout', () => {
+    pointedRow = -1;
+  });
+
   statusCheckbox.checked = status !== 'disabled';
-  caseCheckbox.checked = matchCase;
-  regexpCheckbox.checked = mode === 'regexp';
-  patternInput.value = keywords || '';
+  savedMatchCase = caseCheckbox.checked = matchCase;
+  savedMode = regexpCheckbox.checked = mode === 'regexp';
+  savedKeywords = patternInput.value = keywords || '';
+
 
   caseCheckbox.disabled =
     regexpCheckbox.disabled =
@@ -108,8 +222,8 @@ background: linear-gradient(
     applyButton.disabled = !statusCheckbox.checked;
 
   patternInput.focus();
-  if (regexpCheckbox.checked) {
-    applyButton.disabled = false;
-    renderBackground(patternInput.value.split(/\n/));
+  if (statusCheckbox.checked && regexpCheckbox.checked) {
+    await renderBackground(patternInput.value.split(/\n/));
   }
+  applyButton.disabled = true;
 });

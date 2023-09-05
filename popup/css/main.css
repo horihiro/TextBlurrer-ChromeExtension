@@ -17,7 +17,7 @@ textarea {
   border: none;
   color: #fff;
   resize: vertical;
-  max-height: 500px;
+  max-height: 490px;
   border: 1px solid rgb(170, 170, 170);
   border-radius: 3px;
 
@@ -93,31 +93,23 @@ input[type="checkbox"].custom-checkbox {
 
 input[type="checkbox"].custom-checkbox+span::before {
   cursor: pointer;
-}
-
-input[type="checkbox"]:disabled.custom-checkbox+span::before {
-  cursor: default;
-}
-
-input[type="checkbox"].custom-checkbox+span::before {
+  background-color: black;
   display: inline-block;
   content: '';
   width: 20px;
   height: 20px;
   margin-left: 2px;
-
-  background-color: #999;
-  background-repeat: no-repeat;
-}
-
-input[type="checkbox"]:disabled:checked.custom-checkbox+span::before {
-  -webkit-mask: none;
   background-repeat: no-repeat;
   background-position: 2px 2px;
-  background-color: #ccc;
+}
+
+input[type="checkbox"]:disabled.custom-checkbox+span::before {
+  cursor: default;
+  background-color: gray;
 }
 
 input[type="checkbox"]:checked.custom-checkbox+span::before {
+  mask: none;
   -webkit-mask: none;
   background-repeat: no-repeat;
   background-position: 2px 2px;
@@ -125,20 +117,26 @@ input[type="checkbox"]:checked.custom-checkbox+span::before {
   border-radius: 3px;
 }
 
+input[type="checkbox"]:disabled:checked.custom-checkbox+span::before {
+  background-color: #ddd;
+}
+
 input[type="checkbox"].mode-regexp+span::before {
-  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg") no-repeat center center;
+  -webkit-mask: url("../img/regex.svg") no-repeat center center;
+  mask: url("../img/regex.svg") no-repeat center center;
 }
 
 input[type="checkbox"]:checked.mode-regexp+span::before {
-  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg");
+  background-image: url("../img/regex.svg");
 }
 
 input[type="checkbox"].case-sensitive+span::before {
-  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg") no-repeat center center;
+  -webkit-mask: url("../img/case-sensitive.svg") no-repeat center center;
+  mask: url("../img/case-sensitive.svg") no-repeat center center;
 }
 
 input[type="checkbox"]:checked.case-sensitive+span::before {
-  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg");
+  background-image: url("../img/case-sensitive.svg");
 }
 
 #applyButton {
@@ -146,4 +144,15 @@ input[type="checkbox"]:checked.case-sensitive+span::before {
   display: flex;
   justify-content: flex-end;
   align-self: flex-end;
+}
+
+#_bufferTextArea {
+  border: none;
+  height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
 }

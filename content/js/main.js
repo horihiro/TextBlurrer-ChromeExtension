@@ -18,7 +18,7 @@
   const blurByRegExpPatterns = (patterns) => {
     if (patterns.length === 0) return;
     patterns.forEach((pattern) => {
-      console.log(`Searching pattern ${pattern}`);
+      console.debug(`Searching pattern ${pattern}`);
       getElementsByNodeValue(pattern, document.body).filter((n) => {
         return !exElmList.includes(n.nodeName.toLowerCase())
           && Array.prototype.filter.call(n.childNodes, (c) => {
