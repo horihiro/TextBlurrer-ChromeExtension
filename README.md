@@ -2,13 +2,15 @@
 This extension can blur specified text/keywords in web pages.
 
 # Demo
+## Keyword matching
 
-https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/ae3133f3-27c7-431a-82b6-9bcfce67c81a
+
+## Regular Expression matching
 
 # Try this
-This extension is not published yet.
+This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
 
-To try this, the following steps are needed.
+If you can try a development version, the following steps are needed.
 
 1. get contents of this repository
     1. clone this repository  
