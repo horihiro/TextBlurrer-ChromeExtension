@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     }
     validationResults = await validateLines(lines, !regexpCheckbox.checked);
     applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
-    const re = /\*(\d+)( - \d+px\))$/;
+    const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
       const backgroundColor = curr.isValid ?  '#444' :  '#FF4500';
       if (pos == 0) {
@@ -172,6 +172,7 @@ textarea#${patternInput.id} {
 }`;
   }
 
+  const styleTextArea = getComputedStyle(patternInput);
   patternInput.addEventListener('scroll', renderBackground);
   patternInput.addEventListener('scroll', () => {
     if (patternInput.scrollLeft < 11) patternInput.scrollLeft = 0;
@@ -181,6 +182,7 @@ textarea#${patternInput.id} {
   let pointedRow = -1;
   patternInput.addEventListener('mousemove', (e) => {
     patternInput.title = '';
+    // if (e.offsetY + patternInput.scrollTop < 0) return;
     const row = parseInt((e.offsetY + patternInput.scrollTop - 10) / 20) + 1;
     if (pointedRow == row) return;
     pointedRow = row;
@@ -191,6 +193,7 @@ textarea#${patternInput.id} {
       patternInput.title = curr.reason || '';
       return -1;
     }, row);
+    console.log(patternInput.title);
   }, false);
   patternInput.addEventListener('mouseout', () => {
     pointedRow = -1;
