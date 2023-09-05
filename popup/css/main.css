@@ -93,6 +93,14 @@ input[type="checkbox"].custom-checkbox {
 
 input[type="checkbox"].custom-checkbox+span::before {
   cursor: pointer;
+  background-color: black;
+  display: inline-block;
+  content: '';
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+  background-repeat: no-repeat;
+  background-position: 2px 2px;
 }
 
 input[type="checkbox"]:disabled.custom-checkbox+span::before {
@@ -100,25 +108,8 @@ input[type="checkbox"]:disabled.custom-checkbox+span::before {
   background-color: gray;
 }
 
-input[type="checkbox"].custom-checkbox+span::before {
-  display: inline-block;
-  content: '';
-  width: 20px;
-  height: 20px;
-  margin-left: 2px;
-
-  background-color: #ddd;
-  background-repeat: no-repeat;
-}
-
-input[type="checkbox"]:disabled:checked.custom-checkbox+span::before {
-  -webkit-mask: none;
-  background-repeat: no-repeat;
-  background-position: 2px 2px;
-  background-color: #ccc;
-}
-
 input[type="checkbox"]:checked.custom-checkbox+span::before {
+  mask: none;
   -webkit-mask: none;
   background-repeat: no-repeat;
   background-position: 2px 2px;
@@ -126,20 +117,26 @@ input[type="checkbox"]:checked.custom-checkbox+span::before {
   border-radius: 3px;
 }
 
+input[type="checkbox"]:disabled:checked.custom-checkbox+span::before {
+  background-color: #ddd;
+}
+
 input[type="checkbox"].mode-regexp+span::before {
-  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg") no-repeat center center;
+  -webkit-mask: url("../img/regex.svg") no-repeat center center;
+  mask: url("../img/regex.svg") no-repeat center center;
 }
 
 input[type="checkbox"]:checked.mode-regexp+span::before {
-  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/regex.svg");
+  background-image: url("../img/regex.svg");
 }
 
 input[type="checkbox"].case-sensitive+span::before {
-  -webkit-mask: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg") no-repeat center center;
+  -webkit-mask: url("../img/case-sensitive.svg") no-repeat center center;
+  mask: url("../img/case-sensitive.svg") no-repeat center center;
 }
 
 input[type="checkbox"]:checked.case-sensitive+span::before {
-  background-image: url("https://raw.githubusercontent.com/microsoft/vscode-codicons/main/src/icons/case-sensitive.svg");
+  background-image: url("../img/case-sensitive.svg");
 }
 
 #applyButton {
