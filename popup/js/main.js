@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', async (e) => {
+  const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
+
   const applyButton = document.querySelector('#applyButton');
   const patternInput = document.querySelector('#patternInput');
   const statusCheckbox = document.querySelector('#statusCheckbox');
@@ -6,56 +8,18 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   const regexpCheckbox = document.querySelector('#regexpCheckbox');
   const _bufferTextArea = document.querySelector('#_bufferTextArea')
 
+  const minRowTextArea = 10;
+  const styleTextArea = getComputedStyle(patternInput);
+  const textAreaPaddingLeft = parseInt(styleTextArea.getPropertyValue('padding-left'));
+  const textAreaPaddingTop = parseInt(styleTextArea.getPropertyValue('padding-top'));
+  const textAreaLineHeight = parseInt(styleTextArea.getPropertyValue('line-height'));
+
   let savedKeywords = '';
   let savedMatchCase = false;
   let savedMode = false;
-  applyButton.addEventListener('click', async (e) => {
-    await chrome.storage.local.set({
-      'status': !statusCheckbox.checked ? 'disabled' : '',
-      'keywords': patternInput.value,
-      'mode': regexpCheckbox.checked ? 'regexp' : 'text',
-      'matchCase': caseCheckbox.checked
-    });
-    patternInput.focus();
-    savedKeywords = patternInput.value;
-    savedMode = regexpCheckbox.checked;
-    savedMatchCase =caseCheckbox.checked;
-    e.target.disabled = true;
-  });
+  let validationResults = [];
+  let pointedRow = -1;
 
-  statusCheckbox.addEventListener('change', async (e) => {
-    caseCheckbox.disabled = 
-    regexpCheckbox.disabled =
-      patternInput.disabled = !e.target.checked;
-    applyButton.disabled = !e.target.checked || !validationResults.every(r => r.isValid);
-
-    await chrome.storage.local.set({
-      "status": !e.target.checked ? 'disabled' : ''
-    });
-    if (!e.target.checked) {
-      document.querySelector('head > style').innerHTML = '';
-      return;
-    }
-
-    await renderBackground();
-
-    patternInput.focus();
-  });
-  regexpCheckbox.addEventListener('change', async (e) => {
-    patternInput.focus();
-    patternInput.style.background = '#444';
-
-    patternInput.style.background = '';
-    await renderBackground();
-    if (e.target.checked) {
-      return;
-    }
-    document.querySelector('head > style').innerHTML = '';2719467
-  });
-  caseCheckbox.addEventListener('change', async (e) => {
-    await renderBackground();
-    patternInput.focus();
-  });
   const hasCaptureGroups = (regexStr) => {
     return new Promise((resolve) => {
       if (regexStr === '') resolve(false);
@@ -131,7 +95,6 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     }, []);
   }
 
-  let validationResults = [];
   const renderBackground = async () => {
     const lines = patternInput.value.split(/\n/);
     if (lines.length == 0) {
@@ -145,13 +108,13 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
     const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
-      const backgroundColor = curr.isValid ?  '#444' :  '#FF4500';
+      const backgroundColor = curr.isValid ? '#444' : '#FF4500';
       if (pos == 0) {
         prev.push(`${backgroundColor} calc(var(--l)*0 - ${patternInput.scrollTop}px) calc(var(--l)*${curr.numOfLine} - ${patternInput.scrollTop}px)`);
         return prev;
       }
       const start = parseInt(prev[prev.length - 1].match(re)[1]);
-      if (curr.isValid == array[pos-1].isValid) {
+      if (curr.isValid == array[pos - 1].isValid) {
         prev[prev.length - 1] = prev[prev.length - 1].replace(re, `*${start + curr.numOfLine}$2`);
         return prev;
       }
@@ -161,8 +124,8 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     if (bgColors.length > 0) {
       const start = parseInt(bgColors[bgColors.length - 1].match(re)[1]);
       bgColors.push(`#444 calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + 1} - ${patternInput.scrollTop}px)`);
-      patternInput.setAttribute('rows', start > 10 ? start : 10);
-    } 
+      patternInput.setAttribute('rows', start > minRowTextArea ? start : minRowTextArea);
+    }
 
     document.querySelector('head > style').innerHTML = `
 textarea#${patternInput.id} {
@@ -172,39 +135,86 @@ textarea#${patternInput.id} {
 }`;
   }
 
-  const styleTextArea = getComputedStyle(patternInput);
+  applyButton.addEventListener('click', async (e) => {
+    await chrome.storage.local.set({
+      'status': !statusCheckbox.checked ? 'disabled' : '',
+      'keywords': patternInput.value,
+      'mode': regexpCheckbox.checked ? 'regexp' : 'text',
+      'matchCase': caseCheckbox.checked
+    });
+    patternInput.focus();
+    savedKeywords = patternInput.value;
+    savedMode = regexpCheckbox.checked;
+    savedMatchCase = caseCheckbox.checked;
+    e.target.disabled = true;
+  });
+
+  statusCheckbox.addEventListener('change', async (e) => {
+    caseCheckbox.disabled =
+      regexpCheckbox.disabled =
+      patternInput.disabled = !e.target.checked;
+    applyButton.disabled = !e.target.checked || !validationResults.every(r => r.isValid);
+
+    await chrome.storage.local.set({
+      "status": !e.target.checked ? 'disabled' : ''
+    });
+    if (!e.target.checked) {
+      document.querySelector('head > style').innerHTML = '';
+      return;
+    }
+
+    await renderBackground();
+
+    patternInput.focus();
+  });
+  regexpCheckbox.addEventListener('change', async (e) => {
+    patternInput.focus();
+    patternInput.style.background = '#444';
+
+    patternInput.style.background = '';
+    await renderBackground();
+    if (e.target.checked) {
+      return;
+    }
+    document.querySelector('head > style').innerHTML = '';
+  });
+  caseCheckbox.addEventListener('change', async (e) => {
+    await renderBackground();
+    patternInput.focus();
+  });
+
   patternInput.addEventListener('scroll', renderBackground);
   patternInput.addEventListener('scroll', () => {
-    if (patternInput.scrollLeft < 11) patternInput.scrollLeft = 0;
-    if (patternInput.scrollTop < 14) patternInput.scrollTop = 0;
+    if (patternInput.scrollLeft < textAreaPaddingLeft) patternInput.scrollLeft = 0;
+    if (patternInput.scrollTop < textAreaPaddingTop) patternInput.scrollTop = 0;
   });
   patternInput.addEventListener('input', renderBackground);
-  let pointedRow = -1;
   patternInput.addEventListener('mousemove', (e) => {
-    patternInput.title = '';
-    // if (e.offsetY + patternInput.scrollTop < 0) return;
-    const row = parseInt((e.offsetY + patternInput.scrollTop - 10) / 20) + 1;
+    if (e.offsetY + patternInput.scrollTop - textAreaPaddingTop < 0) return;
+    const row = parseInt((e.offsetY + patternInput.scrollTop - textAreaPaddingTop) / textAreaLineHeight) + 1;
     if (pointedRow == row) return;
     pointedRow = row;
     validationResults.reduce((prev, curr) => {
       if (prev < 0) return -1;
       prev -= curr.numOfLine;
-      if (prev > 0) return prev;
-      patternInput.title = curr.reason || '';
+      if (prev > 0) {
+        patternInput.title = '';
+        return prev;
+      }
+      patternInput.setAttribute('title', curr.reason || '');
       return -1;
     }, row);
-    console.log(patternInput.title);
+    console.log(row, patternInput.title);
   }, false);
   patternInput.addEventListener('mouseout', () => {
     pointedRow = -1;
   });
 
-  const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
   statusCheckbox.checked = status !== 'disabled';
   savedMatchCase = caseCheckbox.checked = matchCase;
   savedMode = regexpCheckbox.checked = mode === 'regexp';
   savedKeywords = patternInput.value = keywords || '';
-  
+
 
   caseCheckbox.disabled =
     regexpCheckbox.disabled =
