@@ -32,6 +32,11 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.1](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.1)
+
+  - Bug fixes
+    - Make RegExp/Matching Case buttons more clear
+
 ## [0.1.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.0)
 
   -  New features
