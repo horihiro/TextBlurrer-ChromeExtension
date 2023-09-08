@@ -9,6 +9,9 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/f33e548c-
 ## Regular Expression matching
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/dbd7d6f7-3879-4ab0-895c-8c6b154fecf2
 
+#### RegExp Validation
+https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/f7c86192-a407-4497-b4e6-ff1c98f461ca
+
 
 # Try this
 This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
@@ -27,3 +30,32 @@ If you can try a development version, the following steps are needed.
       ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/44e7f896-9e82-4af1-ae1b-f864097b44c7)
 1. select the directory created by cloning at step 1.
 
+# Change logs
+
+## [0.1.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.0)
+
+  -  New features
+    - New Popup UI
+      - Add buttons for:
+        - Regular Expression ([#3](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/3)) w/ validation
+        - Match case
+
+  - Bug fixes
+    - `Enabled` toggle button behavior
+
+## [0.2.0-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.2)
+
+First release on [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
+
+  - Bug fixes
+    - Improve performance
+
+  - Chores
+    - Remove unnesessary features
+      - server worker
+      - `tabs` permission
+      - dependency to jQuery
+
+## [0.1.0-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.1)
+
+First release on GitHub
