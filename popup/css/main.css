@@ -93,7 +93,7 @@ input[type="checkbox"].custom-checkbox {
 
 input[type="checkbox"].custom-checkbox+span::before {
   cursor: pointer;
-  background-color: black;
+  background-color: #ccc;
   display: inline-block;
   content: '';
   width: 20px;
