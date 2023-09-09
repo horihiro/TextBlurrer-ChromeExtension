@@ -83,12 +83,15 @@ document.addEventListener('DOMContentLoaded', async (e) => {
         isValid: true
       };
       if (onlyLineCounting) {
+        // if (curr.length == 1) result.reason = 'Warning:\n  One character matching might cause performance issue.';
       } else if (!(await validateRegExp(curr))) {
         result.isValid = false;
-        result.reason = 'Failed to create RegExp object.\nCheck if this is a valid regular expression string.';
+        result.reason = 'Error:\n  Failed to create RegExp object.\n  Check if this is a valid regular expression string.';
       } else if (await hasCaptureGroups(curr)) {
         result.isValid = false;
-        result.reason = 'This string might contain capture-group that should be non-capture-group.\nReplace a pair of `(` and `)` to `(?:` and `)`.';
+        result.reason = 'Error:\n  This string might contain capture-group that should be non-capture-group.\n  Replace a pair of `(` and `)` to `(?:` and `)`.';
+      } else if (/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(curr)) {
+        result.reason = 'Warning:\n  One character matching might cause performance issue.';
       }
       array.push(result);
       return array;
@@ -108,13 +111,13 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
     const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
-      const backgroundColor = curr.isValid ? '#444' : '#FF4500';
+      const backgroundColor = curr.isValid ? (!curr.reason ? '#444' : '#FFA500') : '#FF4500';
       if (pos == 0) {
         prev.push(`${backgroundColor} calc(var(--l)*0 - ${patternInput.scrollTop}px) calc(var(--l)*${curr.numOfLine} - ${patternInput.scrollTop}px)`);
         return prev;
       }
       const start = parseInt(prev[prev.length - 1].match(re)[1]);
-      if (curr.isValid == array[pos - 1].isValid) {
+      if (curr.isValid == array[pos - 1].isValid && !!curr.reason == !!array[pos - 1].reason) {
         prev[prev.length - 1] = prev[prev.length - 1].replace(re, `*${start + curr.numOfLine}$2`);
         return prev;
       }
@@ -173,10 +176,10 @@ textarea#${patternInput.id} {
 
     patternInput.style.background = '';
     await renderBackground();
-    if (e.target.checked) {
-      return;
-    }
-    document.querySelector('head > style').innerHTML = '';
+    // if (e.target.checked) {
+    //   return;
+    // }
+    // document.querySelector('head > style').innerHTML = '';
   });
   caseCheckbox.addEventListener('change', async (e) => {
     await renderBackground();
@@ -222,7 +225,7 @@ textarea#${patternInput.id} {
     applyButton.disabled = !statusCheckbox.checked;
 
   patternInput.focus();
-  if (statusCheckbox.checked && regexpCheckbox.checked) {
+  if (statusCheckbox.checked) {
     await renderBackground(patternInput.value.split(/\n/));
   }
   applyButton.disabled = true;
