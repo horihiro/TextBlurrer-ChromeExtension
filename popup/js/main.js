@@ -6,7 +6,11 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   const statusCheckbox = document.querySelector('#statusCheckbox');
   const caseCheckbox = document.querySelector('#caseCheckbox');
   const regexpCheckbox = document.querySelector('#regexpCheckbox');
-  const _bufferTextArea = document.querySelector('#_bufferTextArea')
+  const _bufferTextArea = document.querySelector('#_bufferTextArea');
+
+  const COLOR_DEFAULT = getComputedStyle(_bufferTextArea).getPropertyValue('background-color');
+  const COLOR_WARNING = '#FFA500';
+  const COLOR_ERROR = '#FF4500';
 
   const minRowTextArea = 10;
   const styleTextArea = getComputedStyle(patternInput);
@@ -111,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
     const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
-      const backgroundColor = curr.isValid ? (!curr.reason ? '#444' : '#FFA500') : '#FF4500';
+      const backgroundColor = curr.isValid ? (!curr.reason ? COLOR_DEFAULT : COLOR_WARNING) : COLOR_ERROR;
       if (pos == 0) {
         prev.push(`${backgroundColor} calc(var(--l)*0 - ${patternInput.scrollTop}px) calc(var(--l)*${curr.numOfLine} - ${patternInput.scrollTop}px)`);
         return prev;
@@ -126,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     }, []);
     if (bgColors.length > 0) {
       const start = parseInt(bgColors[bgColors.length - 1].match(re)[1]);
-      bgColors.push(`#444 calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + 1} - ${patternInput.scrollTop}px)`);
+      bgColors.push(`${COLOR_DEFAULT} calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + 1} - ${patternInput.scrollTop}px)`);
       patternInput.setAttribute('rows', start > minRowTextArea ? start : minRowTextArea);
     }
 
@@ -134,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
 textarea#${patternInput.id} {
   background: linear-gradient(
   ${bgColors.join(',\n  ')}
-  ) 0 8px no-repeat, #444;
+  ) 0 8px no-repeat, ${COLOR_DEFAULT};
 }`;
   }
 
@@ -172,7 +176,7 @@ textarea#${patternInput.id} {
   });
   regexpCheckbox.addEventListener('change', async (e) => {
     patternInput.focus();
-    patternInput.style.background = '#444';
+    patternInput.style.background = COLOR_DEFAULT;
 
     patternInput.style.background = '';
     await renderBackground();
