@@ -8,25 +8,32 @@
 
   const getElementsByNodeValue = (value, target) => {
     const nodes = [];
-    (target || document).childNodes.forEach((n) => {
+    Array.prototype.filter.call((target || document).childNodes, (n) => {
+      return n.nodeName.toLowerCase() !== 'span' || n.className !== 'blurred';
+    }).forEach((n) => {
       !n.nodeValue && nodes.push(...getElementsByNodeValue(value, n));
-      (value.constructor.name === 'RegExp' && value.test(n.nodeValue)) && nodes.push(n.parentNode);
+      value.test(n.nodeValue) && nodes.push(n.parentNode);
     });
     return nodes;
   };
 
   const blurByRegExpPatterns = (patterns) => {
     if (patterns.length === 0) return;
+    const now = Date.now();
     patterns.forEach((pattern) => {
       console.debug(`Searching pattern ${pattern}`);
-      getElementsByNodeValue(pattern, document.body).filter((n) => {
-        return !exElmList.includes(n.nodeName.toLowerCase())
+      getElementsByNodeValue(pattern, document.body)
+      .reduce((prev, n) => {
+        if (!prev.includes(n)
+          && !exElmList.includes(n.nodeName.toLowerCase())
           && Array.prototype.filter.call(n.childNodes, (c) => {
             return c.nodeName === '#text' && pattern.test(c.nodeValue);
           }).length > 0
-          && getStateOfContentEditable(n) !== 'true';
-      }).forEach((n) => {
-        if (n.className && n.className.includes('blurred')) return;
+          && getStateOfContentEditable(n) !== 'true'
+        ) prev.push(n);
+        return prev;
+      }, []).forEach((n) => {
+        if (n.className && `${n.className}`.includes('blurred')) return;
         const size = Math.floor(parseFloat(getComputedStyle(n).fontSize) / 4);
         n.childNodes.forEach((c) => {
           if (c.nodeName !== "#text" || !pattern.test(c.nodeValue)) return;
@@ -46,6 +53,7 @@
         });
       })
     });
+    console.debug(`Took ${Date.now() - now} ms`)
   };
 
   const blur = (keywords) => {
@@ -69,20 +77,27 @@
     const m = w.document.querySelectorAll('.blurred');
     if (m.length === 0) return;
 
+    const now = Date.now();
     m.forEach((n) => {
       const p = n.parentNode;
+      p.childNodes.forEach((c) => {
+        if (c.nodeName !== '#text' || c.nodeValue !== '' || c === p.firstChild) return
+        p.removeChild(c);
+      });
       n.childNodes.forEach((c) => {
-        p.insertBefore(c, n);
+        if (n.previousSibling.nodeName === '#text' && c.nodeName === '#text') {
+          n.previousSibling.nodeValue += c.nodeValue;
+          if (n.nextSibling?.nodeName === '#text') {
+            n.previousSibling.nodeValue += n.nextSibling.nodeValue;
+            p.removeChild(n.nextSibling);
+          }
+        } else {
+          p.insertBefore(c, n);
+        }
       });
       p.removeChild(n);
-      for (let i = p.childNodes.length - 1; i >= 1; i--) {
-        const c = p.childNodes[i];
-        const s = p.childNodes[i - 1];
-        if (!s || c.nodeName !== '#text' || s.nodeName !== '#text') continue;
-        s.nodeValue += c.nodeValue;
-        c.nodeValue = "";
-      }
     });
+    console.debug(`Took ${Date.now() - now} ms`)
   };
 
   const escapeRegExp = (str) => {
