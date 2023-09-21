@@ -180,10 +180,6 @@ textarea#${patternInput.id} {
 
     patternInput.style.background = '';
     await renderBackground();
-    // if (e.target.checked) {
-    //   return;
-    // }
-    // document.querySelector('head > style').innerHTML = '';
   });
   caseCheckbox.addEventListener('change', async (e) => {
     await renderBackground();
