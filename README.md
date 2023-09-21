@@ -32,6 +32,13 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.2)
+
+  - New features
+    - Add warning on popup for RegExp one character matches
+  - Bug fixes
+    - Improve performance
+
 ## [0.1.1](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.1)
 
   - Bug fixes
