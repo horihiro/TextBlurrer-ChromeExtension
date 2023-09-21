@@ -6,7 +6,11 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   const statusCheckbox = document.querySelector('#statusCheckbox');
   const caseCheckbox = document.querySelector('#caseCheckbox');
   const regexpCheckbox = document.querySelector('#regexpCheckbox');
-  const _bufferTextArea = document.querySelector('#_bufferTextArea')
+  const _bufferTextArea = document.querySelector('#_bufferTextArea');
+
+  const COLOR_DEFAULT = getComputedStyle(_bufferTextArea).getPropertyValue('background-color');
+  const COLOR_WARNING = '#FFA500';
+  const COLOR_ERROR = '#FF4500';
 
   const minRowTextArea = 10;
   const styleTextArea = getComputedStyle(patternInput);
@@ -83,12 +87,15 @@ document.addEventListener('DOMContentLoaded', async (e) => {
         isValid: true
       };
       if (onlyLineCounting) {
+        // if (curr.length == 1) result.reason = 'Warning:\n  One character matching might cause performance issue.';
       } else if (!(await validateRegExp(curr))) {
         result.isValid = false;
-        result.reason = 'Failed to create RegExp object.\nCheck if this is a valid regular expression string.';
+        result.reason = 'Error:\n  Failed to create RegExp object.\n  Check if this is a valid regular expression string.';
       } else if (await hasCaptureGroups(curr)) {
         result.isValid = false;
-        result.reason = 'This string might contain capture-group that should be non-capture-group.\nReplace a pair of `(` and `)` to `(?:` and `)`.';
+        result.reason = 'Error:\n  This string might contain capture-group that should be non-capture-group.\n  Replace a pair of `(` and `)` to `(?:` and `)`.';
+      } else if (/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(curr)) {
+        result.reason = 'Warning:\n  One character matching might cause performance issue.';
       }
       array.push(result);
       return array;
@@ -108,13 +115,13 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
     const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
-      const backgroundColor = curr.isValid ? '#444' : '#FF4500';
+      const backgroundColor = curr.isValid ? (!curr.reason ? COLOR_DEFAULT : COLOR_WARNING) : COLOR_ERROR;
       if (pos == 0) {
         prev.push(`${backgroundColor} calc(var(--l)*0 - ${patternInput.scrollTop}px) calc(var(--l)*${curr.numOfLine} - ${patternInput.scrollTop}px)`);
         return prev;
       }
       const start = parseInt(prev[prev.length - 1].match(re)[1]);
-      if (curr.isValid == array[pos - 1].isValid) {
+      if (curr.isValid == array[pos - 1].isValid && !!curr.reason == !!array[pos - 1].reason) {
         prev[prev.length - 1] = prev[prev.length - 1].replace(re, `*${start + curr.numOfLine}$2`);
         return prev;
       }
@@ -123,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     }, []);
     if (bgColors.length > 0) {
       const start = parseInt(bgColors[bgColors.length - 1].match(re)[1]);
-      bgColors.push(`#444 calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + 1} - ${patternInput.scrollTop}px)`);
+      bgColors.push(`${COLOR_DEFAULT} calc(var(--l)*${start} - ${patternInput.scrollTop}px) calc(var(--l)*${start + 1} - ${patternInput.scrollTop}px)`);
       patternInput.setAttribute('rows', start > minRowTextArea ? start : minRowTextArea);
     }
 
@@ -131,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
 textarea#${patternInput.id} {
   background: linear-gradient(
   ${bgColors.join(',\n  ')}
-  ) 0 8px no-repeat, #444;
+  ) 0 8px no-repeat, ${COLOR_DEFAULT};
 }`;
   }
 
@@ -169,14 +176,10 @@ textarea#${patternInput.id} {
   });
   regexpCheckbox.addEventListener('change', async (e) => {
     patternInput.focus();
-    patternInput.style.background = '#444';
+    patternInput.style.background = COLOR_DEFAULT;
 
     patternInput.style.background = '';
     await renderBackground();
-    if (e.target.checked) {
-      return;
-    }
-    document.querySelector('head > style').innerHTML = '';
   });
   caseCheckbox.addEventListener('change', async (e) => {
     await renderBackground();
@@ -222,7 +225,7 @@ textarea#${patternInput.id} {
     applyButton.disabled = !statusCheckbox.checked;
 
   patternInput.focus();
-  if (statusCheckbox.checked && regexpCheckbox.checked) {
+  if (statusCheckbox.checked) {
     await renderBackground(patternInput.value.split(/\n/));
   }
   applyButton.disabled = true;
