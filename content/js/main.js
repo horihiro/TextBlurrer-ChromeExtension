@@ -78,20 +78,30 @@
     const now = Date.now();
     m.forEach((n) => {
       const p = n.parentNode;
-      p.childNodes.forEach((c) => {
-        if (c.nodeName !== '#text' || c.nodeValue !== '' || c === p.firstChild) return
-        p.removeChild(c);
-      });
       n.childNodes.forEach((c) => {
-        if (n.previousSibling.nodeName !== '#text' || c.nodeName !== '#text') {
+        if (c.nodeName !== '#text') {
           p.insertBefore(c, n);
           return;
         }
-        n.previousSibling.nodeValue += c.nodeValue;
 
-        if (n.nextSibling?.nodeName !== '#text') return;
-        n.previousSibling.nodeValue += n.nextSibling.nodeValue;
-        p.removeChild(n.nextSibling);
+        let textContainer = n.previousSibling;
+        do {
+          if (textContainer.nodeName !== '#text') {
+            p.insertBefore(c, n);
+            break;
+          }
+          if (textContainer.previousSibling && textContainer.nodeValue === '') {
+            textContainer = textContainer.previousSibling;
+            continue;
+          }
+          textContainer.nodeValue += c.nodeValue;
+
+          if (n.nextSibling?.nodeName === '#text') {
+            n.previousSibling.nodeValue += n.nextSibling.nodeValue;
+            p.removeChild(n.nextSibling);
+          }
+          break;
+        } while (true);
       });
       p.removeChild(n);
     });
