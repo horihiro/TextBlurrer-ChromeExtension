@@ -1,6 +1,7 @@
 (async () => {
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
+  const blurredClassName = 'blurred';
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
@@ -9,7 +10,7 @@
   const getElementsByNodeValue = (value, target) => {
     const nodes = [];
     Array.prototype.filter.call((target || document).childNodes, (n) => {
-      return n.nodeName.toLowerCase() !== 'span' || n.className !== 'blurred';
+      return n.nodeName.toLowerCase() !== 'span' || !(`${n.className}`.includes(blurredClassName));
     }).forEach((n) => {
       !n.nodeValue && nodes.push(...getElementsByNodeValue(value, n));
       value.test(n.nodeValue) && nodes.push(n.parentNode);
@@ -33,7 +34,7 @@
         ) prev.push(n);
         return prev;
       }, []).forEach((n) => {
-        if (n.className && `${n.className}`.includes('blurred')) return;
+        if (n.className && `${n.className}`.includes(blurredClassName)) return;
         const size = Math.floor(parseFloat(getComputedStyle(n).fontSize) / 4);
         n.childNodes.forEach((c) => {
           if (c.nodeName !== "#text" || !pattern.test(c.nodeValue)) return;
@@ -44,7 +45,7 @@
 
           textArray.forEach((t) => {
             const blurredSpan = document.createElement('span');
-            blurredSpan.className = 'blurred';
+            blurredSpan.className = blurredClassName;
             blurredSpan.innerText = matched.shift();
             if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
             c.parentNode.insertBefore(blurredSpan, referenceNode);
@@ -72,7 +73,7 @@
     if (!w.__observer) return;
     w.__observer.disconnect();
     delete w.__observer
-    const m = w.document.querySelectorAll('.blurred');
+    const m = w.document.querySelectorAll(`.${blurredClassName}`);
     if (m.length === 0) return;
 
     const now = Date.now();
