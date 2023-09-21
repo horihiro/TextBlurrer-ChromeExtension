@@ -61,13 +61,11 @@
     w.__observer = new MutationObserver(() => {
       blurByRegExpPatterns(keywords);
     });
-    w.__observer.observe(w.document,
-      {
-        childList: true,
-        subtree: true,
-        characterData: true
-      }
-    );
+    w.__observer.observe(w.document, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
     blurByRegExpPatterns(keywords);
   };
   const unblur = () => {
@@ -85,15 +83,15 @@
         p.removeChild(c);
       });
       n.childNodes.forEach((c) => {
-        if (n.previousSibling.nodeName === '#text' && c.nodeName === '#text') {
-          n.previousSibling.nodeValue += c.nodeValue;
-          if (n.nextSibling?.nodeName === '#text') {
-            n.previousSibling.nodeValue += n.nextSibling.nodeValue;
-            p.removeChild(n.nextSibling);
-          }
-        } else {
+        if (n.previousSibling.nodeName !== '#text' || c.nodeName !== '#text') {
           p.insertBefore(c, n);
+          return;
         }
+        n.previousSibling.nodeValue += c.nodeValue;
+
+        if (n.nextSibling?.nodeName !== '#text') return;
+        n.previousSibling.nodeValue += n.nextSibling.nodeValue;
+        p.removeChild(n.nextSibling);
       });
       p.removeChild(n);
     });
