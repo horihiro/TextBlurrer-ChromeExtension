@@ -55,7 +55,7 @@ If you can try a development version, the following steps are needed.
   - Bug fixes
     - `Enabled` toggle button behavior
 
-## [0.2.0-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.2)
+## [0.0.2-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.2)
 
 First release on [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
 
@@ -68,6 +68,6 @@ First release on [Chrome Web Store](https://chrome.google.com/webstore/detail/te
       - `tabs` permission
       - dependency to jQuery
 
-## [0.1.0-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.1)
+## [0.0.1-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.1)
 
 First release on GitHub
