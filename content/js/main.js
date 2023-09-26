@@ -11,49 +11,159 @@
     return Array.prototype.filter.call((target || document).childNodes, (n) => {
       return n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName));
     }).reduce((array, n) => {
-      if (!n.nodeValue) {
+      if (n.nodeName !== "#text") {
         array.push(...getElementsByNodeValue(pattern, n));
+        // if (!array.some((o) => n.contains(o.node))) {
+        // if (!array.some((o) => n == o.node)) {
+        // if (!array.some((o) => n == o.node.parentNode && n.innerText.trim() === o.node.innerText.trim())) {
+        const result = (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) && n.innerText?.match(pattern);
+        if (result) {
+          array.push({
+            splitted: true,
+            node: n
+          });
+        }
+        // }
         return array;
       }
       const result = n.nodeValue.match(pattern);
-      if (!result) return array;
-      array.push({
-        exact: result[result.index] === result.input,
-        node: n.parentNode
-      });
+      if (result) {
+        array.push({
+          exact: result[result.index] === result.input,
+          node: n.parentNode
+        });
+      }
       return array;
     }, []);
   };
+
+  const getNextTextNode = (e, root) => {
+    if (!e) return null;
+    if (e.firstChild) return e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, root);
+    if (e.nextSibling) return e.nextSibling.nodeName === '#text' ? e.nextSibling : getNextTextNode(e.nextSibling, root);
+
+    let parent = e.parentNode;
+    while (parent != root && parent) {
+      if (parent.nextSibling) return parent.nextSibling.nodeName === '#text' ? parent.nextSibling : getNextTextNode(parent.nextSibling, root);
+      parent = parent.parentNode;
+    }
+    return null;
+  }
+
+  const getPreviousTextNode = (e, root) => {
+    if (!e) return null;
+    if (e.lastChild) return e.lastChild.nodeName === '#text' ? e.lastChild : getPreviousTextNode(e.lastChild, root);
+    if (e.previousSibling) return e.previousSibling.nodeName === '#text' ? e.previousSibling : getPreviousTextNode(e.previousSibling, root);
+
+    let parent = e.parentNode;
+    while (parent != root && parent) {
+      if (parent.previousSibling) return parent.previousSibling.nodeName === '#text' ? parent.previousSibling : getPreviousTextNode(parent.previousSibling, root);
+      parent = parent.parentNode;
+    }
+    return null;
+  }
+
+  const inchworm = (e, pattern) => {
+    let tail = e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, e), head = getNextTextNode(tail, e);
+    let result;
+    do {
+      let str = '';
+      let pos = tail;
+      do {
+        str = `${str}${pos.parentNode.classList.contains(blurredClassName) ? '' : pos.nodeValue}`;
+        result = str.match(pattern);
+        if (result) break;
+        pos = getNextTextNode(pos, e);
+      } while (!result && pos);
+      head = pos;
+      if (!head) {
+        tail = getNextTextNode(head, e);
+        head = getNextTextNode(tail, e);
+        continue;
+      }
+
+      str = '';
+      pos = head;
+      do {
+        str = `${pos.parentNode.classList.contains(blurredClassName) ? '' : pos.nodeValue}${str}`;
+        result = str.match(pattern);
+        if (result) break;
+        pos = getPreviousTextNode(pos, e);
+      } while (pos);
+      tail = pos;
+      if (!tail) {
+        tail = getNextTextNode(head, e);
+        head = getNextTextNode(tail, e);
+        continue;
+      }
+
+      const blurred1 = document.createElement('span');
+      blurred1.classList.add(blurredClassName);
+      blurred1.innerText = tail.nodeValue.slice(result.index);;
+      tail.nodeValue = tail.nodeValue.slice(0, result.index);
+      tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
+      tail.parentNode.insertBefore(blurred1, tail.nextSibling);
+      pos = getNextTextNode(blurred1.firstChild, e);
+      while (pos != head) {
+        if (pos.nodeValue !== '') {
+          const span = document.createElement('span');
+          span.classList.add(blurredClassName);
+          pos.parentNode.insertBefore(document.createTextNode(''), pos);
+          pos.parentNode.insertBefore(span, pos);
+          span.appendChild(pos);
+        }
+        pos = getNextTextNode(pos, e);
+      }
+      const blurred2 = document.createElement('span');
+      const p = head.nodeValue.length - str.length + result.index + result[0].length;
+      blurred2.classList.add(blurredClassName);
+      blurred2.innerText = head.nodeValue.slice(0, p);;
+      head.nodeValue = head.nodeValue.slice(p);
+      head.parentNode.insertBefore(document.createTextNode(''), head);
+      head.parentNode.insertBefore(blurred2, head);
+
+      tail = getNextTextNode(head, e);
+      head = getNextTextNode(tail, e);
+    } while (head && tail);
+  }
 
   const blurByRegExpPatterns = (patterns) => {
     if (patterns.length === 0) return;
     const now = Date.now();
     patterns.forEach((pattern) => {
       console.debug(`Searching pattern ${pattern}`);
-      getElementsByNodeValue(pattern, document.body)
-      .reduce((prev, o) => {
-        if (!prev.includes(o)
-          && !exElmList.includes(o.node.nodeName.toLowerCase())
-          && Array.prototype.filter.call(o.node.childNodes, (c) => {
+      let array = getElementsByNodeValue(pattern, document.body);
+      console.debug('retrived:');
+      console.debug(array);
+      array = array.filter((o) => {
+        return !exElmList.includes(o.node.nodeName.toLowerCase())
+          && (Array.prototype.filter.call(o.node.childNodes, (c) => {
             return c.nodeName === '#text' && pattern.test(c.nodeValue);
-          }).length > 0
+          }).length > 0 || pattern.test(o.node.innerText))
           && getStateOfContentEditable(o.node) !== 'true'
-        ) prev.push(o);
-        return prev;
-      }, []).forEach((o) => {
+      });
+      [...new Set(array)].sort((a) => {
+        return a.splitted ? 1 : -1;
+      }).forEach((o) => {
         const n = o.node;
         if (n.classList.contains(blurredClassName)) return;
+
         const computedStyle = getComputedStyle(n);
         const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
 
         // case of that the element doesn't contain nodes except the matched keyword,
         if (n.childNodes.length == 1
-         && n.firstChild.nodeName === '#text'
-         && o.exact
-         && computedStyle.filter === 'none'
+          && n.firstChild.nodeName === '#text'
+          && o.exact
+          && computedStyle.filter === 'none'
+          && n.nodeName.toLowerCase() !== 'span'
         ) {
           n.classList.add(blurredClassName);
           if (size > 5) n.style.filter += ` blur(${size}px)`;
+          return;
+        }
+        if (o.splitted) {
+          inchworm(n, pattern);
           return;
         }
 
