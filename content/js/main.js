@@ -7,15 +7,22 @@
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
 
-  const getElementsByNodeValue = (value, target) => {
-    const nodes = [];
-    Array.prototype.filter.call((target || document).childNodes, (n) => {
-      return n.nodeName.toLowerCase() !== 'span' || !(`${n.className}`.includes(blurredClassName));
-    }).forEach((n) => {
-      !n.nodeValue && nodes.push(...getElementsByNodeValue(value, n));
-      value.test(n.nodeValue) && nodes.push(n.parentNode);
-    });
-    return nodes;
+  const getElementsByNodeValue = (pattern, target) => {
+    return Array.prototype.filter.call((target || document).childNodes, (n) => {
+      return n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName));
+    }).reduce((array, n) => {
+      if (!n.nodeValue) {
+        array.push(...getElementsByNodeValue(pattern, n));
+        return array;
+      }
+      const result = n.nodeValue.match(pattern);
+      if (!result) return array;
+      array.push({
+        exact: result[result.index] === result.input,
+        node: n.parentNode
+      });
+      return array;
+    }, []);
   };
 
   const blurByRegExpPatterns = (patterns) => {
@@ -24,28 +31,42 @@
     patterns.forEach((pattern) => {
       console.debug(`Searching pattern ${pattern}`);
       getElementsByNodeValue(pattern, document.body)
-      .reduce((prev, n) => {
-        if (!prev.includes(n)
-          && !exElmList.includes(n.nodeName.toLowerCase())
-          && Array.prototype.filter.call(n.childNodes, (c) => {
+      .reduce((prev, o) => {
+        if (!prev.includes(o)
+          && !exElmList.includes(o.node.nodeName.toLowerCase())
+          && Array.prototype.filter.call(o.node.childNodes, (c) => {
             return c.nodeName === '#text' && pattern.test(c.nodeValue);
           }).length > 0
-          && getStateOfContentEditable(n) !== 'true'
-        ) prev.push(n);
+          && getStateOfContentEditable(o.node) !== 'true'
+        ) prev.push(o);
         return prev;
-      }, []).forEach((n) => {
-        if (n.className && `${n.className}`.includes(blurredClassName)) return;
-        const size = Math.floor(parseFloat(getComputedStyle(n).fontSize) / 4);
+      }, []).forEach((o) => {
+        const n = o.node;
+        if (n.classList.contains(blurredClassName)) return;
+        const computedStyle = getComputedStyle(n);
+        const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
+
+        // case of that the element doesn't contain nodes except the matched keyword,
+        if (n.childNodes.length == 1
+         && n.firstChild.nodeName === '#text'
+         && o.exact
+         && computedStyle.filter === 'none'
+        ) {
+          n.classList.add(blurredClassName);
+          if (size > 5) n.style.filter += ` blur(${size}px)`;
+          return;
+        }
+
         n.childNodes.forEach((c) => {
           if (c.nodeName !== "#text" || !pattern.test(c.nodeValue)) return;
-          const referenceNode = c.nextSibling;
           const textArray = c.nodeValue.split(pattern);
+          const referenceNode = c.nextSibling;
           const matched = c.nodeValue.match(new RegExp(pattern.source, `g${pattern.flags}`));
           c.nodeValue = textArray.shift();
 
           textArray.forEach((t) => {
             const blurredSpan = document.createElement('span');
-            blurredSpan.className = blurredClassName;
+            blurredSpan.classList.add(blurredClassName);
             blurredSpan.innerText = matched.shift();
             if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
             c.parentNode.insertBefore(blurredSpan, referenceNode);
@@ -78,6 +99,16 @@
 
     const now = Date.now();
     m.forEach((n) => {
+      if (n.nodeName.toLowerCase() !== 'span' || n.classList.length > 1) {
+        // restore class
+        n.classList.remove(blurredClassName);
+        if (n.classList.length == 0) n.removeAttribute('class');
+
+        // restore style
+        n.style.filter = n.style.filter.replace(/blur\([^\)]+\)/, '').trim();
+        if (n.style.length == 0) n.removeAttribute('style');
+        return;
+      }
       const p = n.parentNode;
       n.childNodes.forEach((c) => {
         if (c.nodeName !== '#text') {
