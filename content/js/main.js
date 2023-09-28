@@ -16,7 +16,7 @@
         // if (!array.some((o) => n.contains(o.node))) {
         // if (!array.some((o) => n == o.node)) {
         // if (!array.some((o) => n == o.node.parentNode && n.innerText.trim() === o.node.innerText.trim())) {
-        const result = (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) && n.innerText?.match(pattern);
+        const result = (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) && n.textContent?.match(pattern);
         if (result) {
           array.push({
             splitted: true,
@@ -148,7 +148,7 @@
         return !exElmList.includes(o.node.nodeName.toLowerCase())
           && (Array.prototype.filter.call(o.node.childNodes, (c) => {
             return c.nodeName === '#text' && pattern.test(c.textContent);
-          }).length > 0 || pattern.test(o.node.innerText))
+          }).length > 0 || pattern.test(o.node.textContent))
           && getStateOfContentEditable(o.node) !== 'true'
       });
       [...new Set(array)].sort((a) => {
@@ -186,7 +186,7 @@
           textArray.forEach((t) => {
             const blurredSpan = document.createElement('span');
             blurredSpan.classList.add(blurredClassName);
-            blurredSpan.innerText = matched.shift();
+            blurredSpan.textContent = matched.shift();
             if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
             c.parentNode.insertBefore(blurredSpan, referenceNode);
             c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
