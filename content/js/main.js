@@ -138,10 +138,10 @@
 
         const mask = document.createElement('div');
         mask.classList.add('mask');
-        mask.appendChild(document.createElement('div'));
-        mask.lastChild.classList.add('backgroundLayer');
-        mask.lastChild.style.setProperty('width', '100%');
-        mask.lastChild.style.setProperty('height', '100%');
+        // mask.appendChild(document.createElement('div'));
+        // mask.lastChild.classList.add('backgroundLayer');
+        // mask.lastChild.style.setProperty('width', '100%');
+        // mask.lastChild.style.setProperty('height', '100%');
         mask.appendChild(document.createElement('div'));
         mask.lastChild.classList.add('textLayer');
         mask.lastChild.textContent = blurredSpan.textContent;
@@ -167,12 +167,19 @@
         mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
         mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
         mask.style.setProperty('border', 'none');
-        mask.querySelector('.mask>.backgroundLayer').style.setProperty('background-color', inputStyle.getPropertyValue('background-color'));
+
+        mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
         mask.style.setProperty('display', 'none');
 
         inputObj.masks.push(mask);
       });
     });
+  }
+  const getBackgroundColorAlongDOMTree = (element) => {
+    const computedStyle = getComputedStyle(element);
+    return (!/(?:^| )rgba *\( *\d+ *, *\d+ *, *\d+ *, *0 *\)(?:$| )/.test(computedStyle.getPropertyValue('background-color')))
+      ? computedStyle.getPropertyValue('background-color')
+      : getBackgroundColorAlongDOMTree(element.parentNode);
   }
   const inputOnFocus = (e) => {
     const input = e.target;
