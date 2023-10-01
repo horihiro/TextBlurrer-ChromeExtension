@@ -114,7 +114,6 @@
       while (clone.firstChild) {
         clone.removeChild(clone.firstChild);
       }
-      // clone.textContent = inputObj.element.value;
       for (let s in inputStyle) {
         if (!isNaN(parseInt(s))) continue;
         if (!['display', 'position', 'visibility', 'top', 'left'].includes(s)) clone.style.setProperty(s, inputStyle.getPropertyValue(s));
@@ -138,10 +137,6 @@
 
         const mask = document.createElement('div');
         mask.classList.add('mask');
-        // mask.appendChild(document.createElement('div'));
-        // mask.lastChild.classList.add('backgroundLayer');
-        // mask.lastChild.style.setProperty('width', '100%');
-        // mask.lastChild.style.setProperty('height', '100%');
         mask.appendChild(document.createElement('div'));
         mask.lastChild.classList.add('textLayer');
         mask.lastChild.textContent = blurredSpan.textContent;
@@ -162,8 +157,12 @@
         mask.style.setProperty('top', `${blurredBoundingBox.top - parentBoundingBox.top + inputBoundingBox.top}px`);
 
         const maskBoundingBox = mask.getBoundingClientRect();
-        mask.style.setProperty('width', `${inputBoundingBox.width + inputBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > maskBoundingBox.left + blurredBoundingBox.width ? blurredBoundingBox.width : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0 ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) : 0}px`);
-        //mask.style.setProperty('width', `${blurredBoundingBox.width}px`);
+        mask.style.setProperty('width', `${
+          inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > blurredBoundingBox.width
+          ? blurredBoundingBox.width
+          : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0
+            ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left'))
+            : 0}px`);
         mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
         mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
         mask.style.setProperty('border', 'none');
