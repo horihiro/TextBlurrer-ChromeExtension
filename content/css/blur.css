@@ -7,11 +7,13 @@
   overflow: hidden;
 }
 
-#__inputClone, .mask, .backgroundLayer, .textLayer {
+#__inputClone, .mask, .textLayer {
   position: absolute;
   top: 0px;
   left: 0px;
   border: none;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #__inputClone {

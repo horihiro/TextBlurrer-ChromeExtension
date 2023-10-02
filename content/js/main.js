@@ -80,7 +80,7 @@
       const inputObj = (() => {
         const array = inputs.filter((inputObj) => inputObj.element == input);
         if (array.length > 0) return array[0];
-        inputs.push({ element: input, masks: [] });
+        inputs.push({ element: input, masks: {} });
         return inputs[inputs.length - 1];
       })();
       if (inputObj.inputHandler) return inputs;
@@ -97,26 +97,35 @@
   const inputOnInput = function (e) {
     const input = e.target;
     this.patterns.forEach((pattern) => {
-      const inputObj = inputs.filter(i => i.element == input)[0];
+      const inputObj = inputs.filter(i => i.element == input )[0];
       if (!inputObj) return;
 
-      while (inputObj.masks.length > 0) {
-        inputObj.masks[0].parentNode && inputObj.masks[0].parentNode.removeChild(inputObj.masks[0]);
-        inputObj.masks.shift();
+      const patternStr = `/${pattern.source}/${pattern.flags}`;
+      if (!inputObj.masks[patternStr]) inputObj.masks[patternStr] = [];
+      while (inputObj.masks[patternStr].length > 0) {
+        inputObj.masks[patternStr][0].parentNode && inputObj.masks[patternStr][0].parentNode.removeChild(inputObj.masks[patternStr][0]);
+        inputObj.masks[patternStr].shift();
       }
-      inputObj.masks.length = 0;
+      inputObj.masks[patternStr].length = 0;
 
       if (!pattern.test(input.value)) return;
-      console.log(input.value);
 
-      const clone = document.querySelector("#__inputClone");
+      // const clone = document.querySelector("#__inputClone");
+      const clone = (() => {
+        return document.querySelector('#__inputClone') || document.createElement('div');
+      })();
+      if (!clone.parentNode) {
+        clone.id = '__inputClone';
+        document.body.appendChild(clone);
+      }
+      clone.textCotent = '';
       const inputStyle = getComputedStyle(input);
       while (clone.firstChild) {
         clone.removeChild(clone.firstChild);
       }
       for (let s in inputStyle) {
         if (!isNaN(parseInt(s))) continue;
-        if (!['display', 'position', 'visibility', 'top', 'left'].includes(s)) clone.style.setProperty(s, inputStyle.getPropertyValue(s));
+        if (!['display', 'position', 'visibility', 'top', 'left', 'overflow', 'white-space'].includes(s)) clone.style.setProperty(s, inputStyle.getPropertyValue(s));
       }
 
       const inputBoundingBox = input.getBoundingClientRect();
@@ -153,24 +162,25 @@
           }
         }
 
-        mask.style.setProperty('left', `${blurredBoundingBox.left - parentBoundingBox.left + inputBoundingBox.left}px`);
-        mask.style.setProperty('top', `${blurredBoundingBox.top - parentBoundingBox.top + inputBoundingBox.top}px`);
-
+        console.debug(blurredBoundingBox);
+        console.debug(inputStyle.getPropertyValue('left'), inputStyle.getPropertyValue('top'))
+        mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
+        mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width'))}px`);
+        console.debug(mask.style.getPropertyValue('left'), mask.style.getPropertyValue('top'))
         const maskBoundingBox = mask.getBoundingClientRect();
-        mask.style.setProperty('width', `${
-          inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > blurredBoundingBox.width
-          ? blurredBoundingBox.width
-          : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0
-            ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left'))
-            : 0}px`);
+        mask.style.setProperty('width', `${inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > blurredBoundingBox.width
+            ? blurredBoundingBox.width
+            : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0
+              ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left'))
+              : 0}px`);
         mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
         mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
         mask.style.setProperty('border', 'none');
 
         mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
-        mask.style.setProperty('display', 'none');
+        e.isTrusted && mask.style.setProperty('display', 'none');
 
-        inputObj.masks.push(mask);
+        inputObj.masks[patternStr].push(mask);
       });
     });
   }
@@ -184,13 +194,17 @@
     const input = e.target;
     const inputObj = inputs.filter(i => i.element == input)[0];
     if (!inputObj) return;
-    inputObj.masks.forEach(m => m.style.setProperty('display', 'none'));
+    for (let p in inputObj.masks) {
+      inputObj.masks[p].forEach(m => m.style.setProperty('display', 'none'));
+    }
   }
   const inputOnBlur = (e) => {
     const input = e.target;
     const inputObj = inputs.filter(i => i.element == input)[0];
     if (!inputObj) return;
-    inputObj.masks.forEach(m => m.style.setProperty('display', ''));
+    for (let p in inputObj.masks) {
+      inputObj.masks[p].forEach(m => m.style.setProperty('display', ''));
+    }
   }
   const blur = (keywords) => {
     if (w.__observer) return;
