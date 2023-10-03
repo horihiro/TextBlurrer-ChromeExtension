@@ -2,6 +2,7 @@
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
   const blurredClassName = 'blurred';
+  const keepClassName = '__keep_this';
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
@@ -168,6 +169,7 @@
           && n.nodeName.toLowerCase() !== 'span'
         ) {
           n.classList.add(blurredClassName);
+          n.classList.add(keepClassName);
           if (size > 5) n.style.filter += ` blur(${size}px)`;
           return;
         }
@@ -218,9 +220,10 @@
 
     const now = Date.now();
     m.forEach((n) => {
-      if (n.nodeName.toLowerCase() !== 'span' || n.classList.length > 1) {
+      if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
         // restore class
         n.classList.remove(blurredClassName);
+        n.classList.remove(keepClassName);
         if (n.classList.length == 0) n.removeAttribute('class');
 
         // restore style
