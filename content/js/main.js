@@ -2,6 +2,7 @@
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
   const blurredClassName = 'blurred';
+  const keepClassName = '__keep_this';
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
@@ -54,6 +55,7 @@
             && computedStyle.filter === 'none'
           ) {
             n.classList.add(blurredClassName);
+            n.classList.add(keepClassName);
             if (size > 5) n.style.filter += ` blur(${size}px)`;
             return;
           }
@@ -97,7 +99,7 @@
   const inputOnInput = function (e) {
     const input = e.target;
     this.patterns.forEach((pattern) => {
-      const inputObj = inputs.filter(i => i.element == input )[0];
+      const inputObj = inputs.filter(i => i.element == input)[0];
       if (!inputObj) return;
 
       const patternStr = `/${pattern.source}/${pattern.flags}`;
@@ -169,10 +171,10 @@
         console.debug(mask.style.getPropertyValue('left'), mask.style.getPropertyValue('top'))
         const maskBoundingBox = mask.getBoundingClientRect();
         mask.style.setProperty('width', `${inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > blurredBoundingBox.width
-            ? blurredBoundingBox.width
-            : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0
-              ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left'))
-              : 0}px`);
+          ? blurredBoundingBox.width
+          : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0
+            ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left'))
+            : 0}px`);
         mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
         mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
         mask.style.setProperty('border', 'none');
@@ -243,9 +245,10 @@
 
     const now = Date.now();
     m.forEach((n) => {
-      if (n.nodeName.toLowerCase() !== 'span' || n.classList.length > 1) {
+      if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
         // restore class
         n.classList.remove(blurredClassName);
+        n.classList.remove(keepClassName);
         if (n.classList.length == 0) n.removeAttribute('class');
 
         // restore style
