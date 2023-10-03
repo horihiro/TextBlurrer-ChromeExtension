@@ -34,7 +34,8 @@ If you can try a development version, the following steps are needed.
 
 ## [0.1.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.3)
 
-T.B.D.
+  - Bug fixes
+    - Improve performance by change blurring logic
 
 ## [0.1.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.2)
 
