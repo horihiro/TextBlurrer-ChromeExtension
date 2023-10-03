@@ -164,11 +164,8 @@
           }
         }
 
-        console.debug(blurredBoundingBox);
-        console.debug(inputStyle.getPropertyValue('left'), inputStyle.getPropertyValue('top'))
         mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
         mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width'))}px`);
-        console.debug(mask.style.getPropertyValue('left'), mask.style.getPropertyValue('top'))
         const maskBoundingBox = mask.getBoundingClientRect();
         mask.style.setProperty('width', `${inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > blurredBoundingBox.width
           ? blurredBoundingBox.width
