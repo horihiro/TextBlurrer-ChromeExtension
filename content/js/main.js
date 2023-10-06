@@ -48,9 +48,8 @@
         const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
 
         // case of that the element doesn't contain nodes except the matched keyword,
-        if (n.childNodes.length == 1
-         && n.firstChild.nodeName === '#text'
-         && o.exact
+        if (o.exact
+         && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
          && computedStyle.filter === 'none'
         ) {
           n.classList.add(blurredClassName);
