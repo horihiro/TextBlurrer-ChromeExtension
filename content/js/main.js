@@ -191,9 +191,50 @@
             if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
             c.parentNode.insertBefore(blurredSpan, referenceNode);
             c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
+      getElementsByNodeValue(pattern, document.body)
+        .reduce((prev, o) => {
+          if (!prev.includes(o)
+            && !exElmList.includes(o.node.nodeName.toLowerCase())
+            && Array.prototype.filter.call(o.node.childNodes, (c) => {
+              return c.nodeName === '#text' && pattern.test(c.nodeValue);
+            }).length > 0
+            && getStateOfContentEditable(o.node) !== 'true'
+          ) prev.push(o);
+          return prev;
+        }, []).forEach((o) => {
+          const n = o.node;
+          if (n.classList.contains(blurredClassName)) return;
+          const computedStyle = getComputedStyle(n);
+          const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
+
+          // case of that the element doesn't contain nodes except the matched keyword,
+          if (o.exact
+            && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
+            && computedStyle.filter === 'none'
+          ) {
+            n.classList.add(blurredClassName);
+            n.classList.add(keepClassName);
+            if (size > 5) n.style.filter += ` blur(${size}px)`;
+            return;
+          }
+
+          n.childNodes.forEach((c) => {
+            if (c.nodeName !== "#text" || !pattern.test(c.nodeValue)) return;
+            const textArray = c.nodeValue.split(pattern);
+            const referenceNode = c.nextSibling;
+            const matched = c.nodeValue.match(new RegExp(pattern.source, `g${pattern.flags}`));
+            c.nodeValue = textArray.shift();
+
+            textArray.forEach((t) => {
+              const blurredSpan = document.createElement('span');
+              blurredSpan.classList.add(blurredClassName);
+              blurredSpan.innerText = matched.shift();
+              if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
+              c.parentNode.insertBefore(blurredSpan, referenceNode);
+              c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
+            });
           });
-        });
-      })
+        })
     });
     console.debug(`Took ${Date.now() - now} ms`)
   };
