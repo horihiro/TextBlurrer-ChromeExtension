@@ -20,9 +20,6 @@
       ],
       "js": [
         "content/js/main.js"
-      ],
-      "css": [
-        "content/css/blur.css"
       ]
     }
   ]
