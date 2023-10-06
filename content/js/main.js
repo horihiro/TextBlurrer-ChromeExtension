@@ -1,8 +1,8 @@
 (async () => {
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
-  const blurredClassName = 'blurred';
-  const keepClassName = '__keep_this';
+  const blurredClassName = '__text_blurrer_blurred_class';
+  const keepClassName = '__text_blurrer_keep_this_class';
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
