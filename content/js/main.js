@@ -114,7 +114,7 @@
       tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
       tail.parentNode.insertBefore(blurred1, tail.nextSibling);
       pos = getNextTextNode(blurred1.firstChild, e);
-      while (pos != head) {
+      while (pos && pos != head) {
         if (pos.textContent !== '') {
           const span = document.createElement('span');
           span.classList.add(blurredClassName);
