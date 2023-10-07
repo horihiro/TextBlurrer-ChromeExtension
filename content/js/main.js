@@ -16,8 +16,6 @@
 
 #${inputCloneId}, .${maskContainerClassName}, .${textLayerClassName} {
   position: absolute!important;
-  top: 0px!important;
-  left: 0px!important;
   border: none!important;
   overflow: hidden!important;
   white-space: nowrap!important;
@@ -25,12 +23,22 @@
 
 #${inputCloneId} {
   visibility: hidden!important;
+  white-space-collapse: preserve!important;
 }`;
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
   const inputs = [];
+
+  const getTextContentRecursive = (target) => {
+    const textContent = Array.prototype.reduce.call(target.childNodes, (allTextContent, node) => {
+      if (exElmList.includes(node.nodeName.toLowerCase())) return allTextContent;
+      if (node.nodeName === '#text') return `${allTextContent}${node.textContent}`;
+      return `${allTextContent}${getTextContentRecursive(node)}`;
+    }, '');
+    return textContent;
+  };
 
   const getElementsByNodeValue = (pattern, target, keywords) => {
     return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
@@ -46,12 +54,15 @@
           !nodearray.includes(n) && array.push({
             node: n
           });
-        } else if (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source) && inlineFormatting(n.textContent).match(pattern)) {
-          !nodearray.includes(n) && array.push({
-            splitted: true,
-            node: n
-          });
-        } 
+        } else {
+          const textContent = inlineFormatting(getTextContentRecursive(n));
+          if (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source) && textContent.match(pattern)) {
+            !nodearray.includes(n) && array.push({
+              splitted: true,
+              node: n
+            });
+          }
+        }
         return array;
       }
       const result = inlineFormatting(n.textContent).match(pattern);
@@ -135,10 +146,12 @@
         continue;
       }
 
+      const reStartWithSpaces = /^(\s+).*/;
       const blurred1 = document.createElement('span');
+      const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
       blurred1.classList.add(blurredClassName);
-      blurred1.textContent = tail.textContent.slice(result.index);;
-      tail.textContent = tail.textContent.slice(0, result.index);
+      blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);;
+      tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
       tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
       tail.parentNode.insertBefore(blurred1, tail.nextSibling);
       pos = getNextTextNode(blurred1.firstChild, e);
@@ -153,7 +166,8 @@
         pos = getNextTextNode(pos, e);
       }
       const blurred2 = document.createElement('span');
-      const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + head.textContent.replace(/^([ \n\t]+).*/, '$1').length;
+      const numOfLeftSpacesInHead = reStartWithSpaces.test(head.textContent) ? head.textContent.replace(reStartWithSpaces, '$1').length : 0;
+      const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
       blurred2.classList.add(blurredClassName);
       blurred2.textContent = head.textContent.slice(0, p);;
       head.textContent = head.textContent.slice(p);
@@ -172,8 +186,8 @@
       console.debug(`Searching pattern ${pattern}`);
       const targetObjects = getElementsByNodeValue(pattern, target || document.body, array).filter((o) => {
         return (Array.prototype.filter.call(o.node.childNodes, (c) => {
-            return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
-          }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
+          return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
+        }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
           && getStateOfContentEditable(o.node) !== 'true'
       });
       [...new Set(targetObjects)].sort((a) => {
