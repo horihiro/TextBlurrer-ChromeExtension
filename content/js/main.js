@@ -1,19 +1,22 @@
 (async () => {
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
-  const blurredClassName = 'blurred';
-  const keepClassName = '__keep_this';
+  const blurredClassName = '__text_blurrer_blurred_class';
+  const keepClassName = '__text_blurrer_keep_this_class';
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
 
-  const getElementsByNodeValue = (pattern, target) => {
-    return Array.prototype.filter.call((target || document).childNodes, (n) => {
+  const getElementsByNodeValue = (pattern, target, keywords) => {
+    return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
       return n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName));
     }).reduce((array, n) => {
       if (!n.nodeValue) {
-        array.push(...getElementsByNodeValue(pattern, n));
+        if (n.shadowRoot) {
+          blur(keywords, n.shadowRoot);
+        }
+        array.push(...getElementsByNodeValue(pattern, n, keywords));
         return array;
       }
       const result = n.nodeValue.match(pattern);
@@ -26,12 +29,12 @@
     }, []);
   };
 
-  const blurByRegExpPatterns = (patterns) => {
+  const blurByRegExpPatterns = (patterns, target) => {
     if (patterns.length === 0) return;
     const now = Date.now();
-    patterns.forEach((pattern) => {
+    patterns.forEach((pattern, _, array) => {
       console.debug(`Searching pattern ${pattern}`);
-      getElementsByNodeValue(pattern, document.body)
+      getElementsByNodeValue(pattern, target || document.body, array)
         .reduce((prev, o) => {
           if (!prev.includes(o)
             && !exElmList.includes(o.node.nodeName.toLowerCase())
@@ -79,23 +82,54 @@
     console.debug(`Took ${Date.now() - now} ms`)
   };
 
-  const blur = (keywords) => {
-    if (w.__observer) return;
-    w.__observer = new MutationObserver(() => {
-      blurByRegExpPatterns(keywords);
-    });
-    w.__observer.observe(w.document, {
+  const observedNodes = [];
+  const blur = (keywords, target) => {
+    const observed = target || document.body;
+    if (observedNodes.includes(observed)) return;
+
+    const style = document.createElement('style');
+    style.innerHTML = `.${blurredClassName} {
+  filter: blur(5px);
+}`;
+    style.id = '__blurring_style';
+    !observed.querySelector(`#${style.id}`) && observed.appendChild(style);
+    observedNodes.push(observed);
+    if (!w.__observer) {
+      w.__observer = new MutationObserver((records) => {
+        const targets = records.reduce((targets, record) => {
+          const isContained = targets.some((target) => {
+            return target.contains(record.target);
+          });
+          if (isContained) return targets;
+          const array = targets.reduce((prev, target) => {
+            if (!record.target.contains(target) && target != record.target) {
+              prev.push(target)
+            }
+            return prev;
+          }, []);
+          array.push(record.target);
+          return array;
+        }, []);
+        targets.forEach(target => blurByRegExpPatterns(keywords, target));
+      });
+    }
+    w.__observer.observe(observed, {
       childList: true,
       subtree: true,
       characterData: true
     });
-    blurByRegExpPatterns(keywords);
+    blurByRegExpPatterns(keywords, observed);
   };
   const unblur = () => {
     if (!w.__observer) return;
     w.__observer.disconnect();
-    delete w.__observer
-    const m = w.document.querySelectorAll(`.${blurredClassName}`);
+    delete w.__observer;
+    const m = observedNodes.reduce((array, target) => {
+      array.push(...target.querySelectorAll(`.${blurredClassName}`));
+      return array;
+    }, []);
+    observedNodes.length = 0;
+    // const m = w.document.querySelectorAll(`.${blurredClassName}`);
     if (m.length === 0) return;
 
     const now = Date.now();
