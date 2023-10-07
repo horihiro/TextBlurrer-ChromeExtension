@@ -34,6 +34,8 @@ If you can try a development version, the following steps are needed.
 
 ## [0.1.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.3)
 
+  - New features
+    - Blur keywords splitted into some elements ([#2](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/2))
   - Bug fixes
     - Improve performance by change blurring logic
     - Blur keywords in shadow DOM
