@@ -34,20 +34,24 @@
 
   const getElementsByNodeValue = (pattern, target, keywords) => {
     return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
-      return n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName));
+      return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName)));
     }).reduce((array, n) => {
       if (n.nodeName !== "#text") {
         if (n.shadowRoot) {
           blur(keywords, n.shadowRoot);
         }
         array.push(...getElementsByNodeValue(pattern, n, keywords));
-        const result = (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) && n.textContent?.match(pattern);
-        if (result) {
-          array.push({
+        const nodearray = array.map(o => o.node);
+        if (inlineFormatting(Array.prototype.filter.call(n.childNodes, (c) => c.nodeName === '#text').map(c => c.nodeValue).join('')).match(pattern)) {
+          !nodearray.includes(n) && array.push({
+            node: n
+          });
+        } else if (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source) && inlineFormatting(n.textContent).match(pattern)) {
+          !nodearray.includes(n) && array.push({
             splitted: true,
             node: n
           });
-        }
+        } 
         return array;
       }
       const result = inlineFormatting(n.textContent).match(pattern);
@@ -89,11 +93,12 @@
 
   // https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace#how_does_css_process_whitespace
   const inlineFormatting = (str) => {
-    return str
+    return str ? str
       .replace(/ *\n */g, '\n') // step.1
       .replace(/[\n\t]/g, ' ')  // step.2&3
       .replace(/ +/g, ' ')      // step.4
       .trim()                   // step.5
+      : ''
   }
 
   const inchworm = (e, pattern) => {
@@ -148,7 +153,7 @@
         pos = getNextTextNode(pos, e);
       }
       const blurred2 = document.createElement('span');
-      const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length;
+      const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + head.textContent.replace(/^([ \n\t]+).*/, '$1').length;
       blurred2.classList.add(blurredClassName);
       blurred2.textContent = head.textContent.slice(0, p);;
       head.textContent = head.textContent.slice(p);
@@ -166,14 +171,13 @@
     patterns.forEach((pattern, _, array) => {
       console.debug(`Searching pattern ${pattern}`);
       const targetObjects = getElementsByNodeValue(pattern, target || document.body, array).filter((o) => {
-        return !exElmList.includes(o.node.nodeName.toLowerCase())
-          && (Array.prototype.filter.call(o.node.childNodes, (c) => {
-            return c.nodeName === '#text' && pattern.test(c.textContent);
-          }).length > 0 || pattern.test(o.node.textContent))
+        return (Array.prototype.filter.call(o.node.childNodes, (c) => {
+            return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
+          }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
           && getStateOfContentEditable(o.node) !== 'true'
       });
       [...new Set(targetObjects)].sort((a) => {
-        return a.splitted ? 1 : -1;
+        return !a.exact ? 1 : a.splitted ? 1 : -1;
       }).forEach((o) => {
         const n = o.node;
         if (n.classList.contains(blurredClassName)) return;
@@ -185,7 +189,6 @@
         if (o.exact
           && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
           && computedStyle.filter === 'none'
-          && n.nodeName.toLowerCase() !== 'span'
         ) {
           n.classList.add(blurredClassName);
           n.classList.add(keepClassName);
