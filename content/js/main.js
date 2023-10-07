@@ -1,6 +1,6 @@
 (async () => {
   const w = window;
-  const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea'];
+  const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
   const blurredClassName = '__text_blurrer_blurred_class';
   const keepClassName = '__text_blurrer_keep_this_class';
   const getStateOfContentEditable = (element) => {
@@ -16,10 +16,7 @@
         if (n.shadowRoot) {
           blur(keywords, n.shadowRoot);
         }
-        array.push(...getElementsByNodeValue(pattern, n));
-        // if (!array.some((o) => n.contains(o.node))) {
-        // if (!array.some((o) => n == o.node)) {
-        // if (!array.some((o) => n == o.node.parentNode && n.innerText.trim() === o.node.innerText.trim())) {
+        array.push(...getElementsByNodeValue(pattern, n, keywords));
         const result = (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) && n.textContent?.match(pattern);
         if (result) {
           array.push({
@@ -244,7 +241,6 @@
       return array;
     }, []);
     observedNodes.length = 0;
-    // const m = w.document.querySelectorAll(`.${blurredClassName}`);
     if (m.length === 0) return;
 
     const now = Date.now();
@@ -269,7 +265,7 @@
 
         let textContainer = n.previousSibling;
         do {
-          if (textContainer.nodeName !== '#text') {
+          if (!textContainer || textContainer.nodeName !== '#text') {
             p.insertBefore(c, n);
             break;
           }
