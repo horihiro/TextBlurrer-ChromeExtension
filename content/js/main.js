@@ -416,12 +416,12 @@
     w.__observer.disconnect();
     delete w.__observer
 
-    inputs.forEach((inputObj) => {
-      inputObj.element.removeEventListener('input', inputObj.inputHandler);
-      inputObj.element.removeEventListener('focus', inputOnFocus);
-      inputObj.element.removeEventListener('blur', inputOnBlur);
-      inputObj.inputHandler = null;
+    document.querySelectorAll(`.${maskContainerClassName}`).forEach((mask) => {
+      mask.parentNode.removeChild(mask);
     });
+    const inputClone = document.querySelector(`#${inputCloneId}`);
+    inputClone && inputClone.parentNode.removeChild(inputClone);
+    inputs.length = 0;
 
     const m = observedNodes.reduce((array, target) => {
       array.push(...target.querySelectorAll(`.${blurredClassName}`));
