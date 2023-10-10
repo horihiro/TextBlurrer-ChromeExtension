@@ -325,12 +325,13 @@
         }
 
         mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
-        mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width'))}px`);
+        mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
         const maskBoundingBox = mask.getBoundingClientRect();
-        mask.style.setProperty('width', `${inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > blurredBoundingBox.width
+        const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width')) - 1;
+        mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width
           ? blurredBoundingBox.width
-          : inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left')) > 0
-            ? inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('padding-left'))
+          : tmpWidth > 0
+            ? tmpWidth
             : 0}px`);
         mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
         mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
