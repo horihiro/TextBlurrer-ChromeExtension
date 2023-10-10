@@ -31,15 +31,6 @@
   };
   const inputs = [];
 
-  const getTextContentRecursive = (target) => {
-    const textContent = Array.prototype.reduce.call(target.childNodes, (allTextContent, node) => {
-      if (exElmList.includes(node.nodeName.toLowerCase())) return allTextContent;
-      if (node.nodeName === '#text') return `${allTextContent}${node.textContent}`;
-      return `${allTextContent}${getTextContentRecursive(node)}`;
-    }, '');
-    return textContent;
-  };
-
   const getTextContentRecursive = (target, options) => {
     const textContent = !target.childNodes ? target.textContent : Array.prototype.reduce.call(target.childNodes, (allTextContent, node) => {
       if (options?.exclusives?.nodeNames?.includes(node.nodeName.toLowerCase()) || options?.exclusives?.nodes?.includes(node)) return allTextContent;
@@ -65,17 +56,6 @@
             keyword: result[0],
             node: n
           });
-<<<<<<< HEAD
-        } else {
-          const textContent = inlineFormatting(getTextContentRecursive(n));
-          if (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source) && textContent.match(pattern)) {
-            !nodearray.includes(n) && array.push({
-              splitted: true,
-              node: n
-            });
-          }
-        }
-=======
           return array;
         }
         const textContent = getTextContentRecursive(n, {exclusives: {nodes: nodearray, nodeNames: exElmList}});
@@ -88,7 +68,6 @@
             node: n
           });
         } 
->>>>>>> bump-0.1.3
         return array;
       }
       const result = inlineFormatting(n.textContent).match(pattern);
@@ -240,11 +219,8 @@
           inchworm(n, pattern);
           return;
         }
-<<<<<<< HEAD
-=======
 
         const reKeyword = new RegExp(escapeRegExp(o.keyword).replace(/ +/, '\\s+'));
->>>>>>> bump-0.1.3
         n.childNodes.forEach((c) => {
           if (c.nodeName !== "#text" || !reKeyword.test(c.textContent)) return;
           const textArray = c.textContent.split(reKeyword);
