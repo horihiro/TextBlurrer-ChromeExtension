@@ -8,6 +8,15 @@
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
   };
 
+  const getTextContentRecursive = (target, options) => {
+    const textContent = !target.childNodes ? target.textContent : Array.prototype.reduce.call(target.childNodes, (allTextContent, node) => {
+      if (options?.exElmList?.includes(node.nodeName.toLowerCase()) || options?.exNodes?.includes(node)) return allTextContent;
+      if (node.nodeName === '#text') return `${allTextContent}${node.textContent}`;
+      return `${allTextContent}${getTextContentRecursive(node, options)}`;
+    }, '');
+    return textContent;
+  };
+
   const getElementsByNodeValue = (pattern, target, keywords) => {
     return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
       return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName)));
@@ -18,12 +27,22 @@
         }
         array.push(...getElementsByNodeValue(pattern, n, keywords));
         const nodearray = array.map(o => o.node);
-        if (inlineFormatting(Array.prototype.filter.call(n.childNodes, (c) => c.nodeName === '#text').map(c => c.nodeValue).join('')).match(pattern)) {
+        let result = inlineFormatting(Array.prototype.filter.call(n.childNodes, (c) => c.nodeName === '#text').map(c => c.nodeValue).join('')).match(pattern);
+        if (result) {
           !nodearray.includes(n) && array.push({
+            keyword: result[0],
             node: n
           });
-        } else if (pattern.source.length > 1 && !/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source) && inlineFormatting(n.textContent).match(pattern)) {
+          return array;
+        }
+        const textContent = nodearray.every((node) => {
+          return !n.contains(node);
+        }) ? n.textContent : getTextContentRecursive(n, {exNodes: nodearray});
+        if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
+        result = inlineFormatting(textContent).match(pattern);
+        if (result) {
           !nodearray.includes(n) && array.push({
+            keyword: result[0],
             splitted: true,
             node: n
           });
@@ -33,6 +52,7 @@
       const result = inlineFormatting(n.textContent).match(pattern);
       if (result) {
         array.push({
+          keyword: result[0],
           exact: result[result.index] === result.input,
           node: n.parentNode
         });
@@ -176,11 +196,12 @@
           return;
         }
 
+        const reKeyword = new RegExp(escapeRegExp(o.keyword).replace(/ +/, '\\s+'));
         n.childNodes.forEach((c) => {
-          if (c.nodeName !== "#text" || !pattern.test(c.textContent)) return;
-          const textArray = c.textContent.split(pattern);
+          if (c.nodeName !== "#text" || !reKeyword.test(c.textContent)) return;
+          const textArray = c.textContent.split(reKeyword);
           const referenceNode = c.nextSibling;
-          const matched = c.textContent.match(new RegExp(pattern.source, `g${pattern.flags}`));
+          const matched = c.textContent.match(new RegExp(reKeyword.source, `g${reKeyword.flags}`));
           c.textContent = textArray.shift();
 
           textArray.forEach((t) => {
