@@ -497,5 +497,10 @@
   });
   const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
   if (status === 'disabled') return;
+  window.addEventListener('resize', () => {
+    inputs.forEach((input) => {
+      input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
+    });
+  })
   blur(str2RegExpArray(keywords, mode, !!matchCase));
 })();
