@@ -42,7 +42,7 @@
 
   const getTextContentRecursive = (target, options) => {
     const textContent = !target.childNodes ? target.textContent : Array.prototype.reduce.call(target.childNodes, (allTextContent, node) => {
-      if (options?.exElmList?.includes(node.nodeName.toLowerCase()) || options?.exNodes?.includes(node)) return allTextContent;
+      if (options?.exclusives?.nodeNames?.includes(node.nodeName.toLowerCase()) || options?.exclusives?.nodes?.includes(node)) return allTextContent;
       if (node.nodeName === '#text') return `${allTextContent}${node.textContent}`;
       return `${allTextContent}${getTextContentRecursive(node, options)}`;
     }, '');
@@ -78,9 +78,7 @@
 =======
           return array;
         }
-        const textContent = nodearray.every((node) => {
-          return !n.contains(node);
-        }) ? n.textContent : getTextContentRecursive(n, {exNodes: nodearray});
+        const textContent = getTextContentRecursive(n, {exclusives: {nodes: nodearray, nodeNames: exElmList}});
         if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
         result = inlineFormatting(textContent).match(pattern);
         if (result) {
