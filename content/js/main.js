@@ -307,6 +307,10 @@
         mask.lastChild.style.setProperty('width', '100%');
         mask.lastChild.style.setProperty('height', '100%');
         input.parentNode.appendChild(mask);
+        mask.lastChild.setAttribute('title', blurredSpan.textContent);
+        mask.addEventListener('click', () => {
+          input.focus();
+        })
 
         const blurredBoundingBox = blurredSpan.getBoundingClientRect();
 
