@@ -111,7 +111,7 @@
       : ''
   }
 
-  const inchworm = (e, pattern) => {
+  const inchworm = (e, pattern, keyword) => {
     let tail = e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, e), head = getNextTextNode(tail, e);
     let result;
     do {
@@ -150,6 +150,7 @@
       const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
       blurred1.classList.add(blurredClassName);
       blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);;
+      blurred1.setAttribute('title', keyword);
       tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
       tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
       tail.parentNode.insertBefore(blurred1, tail.nextSibling);
@@ -158,6 +159,7 @@
         if (pos.textContent !== '') {
           const span = document.createElement('span');
           span.classList.add(blurredClassName);
+          span.setAttribute('title', keyword);
           pos.parentNode.insertBefore(document.createTextNode(''), pos);
           pos.parentNode.insertBefore(span, pos);
           span.appendChild(pos);
@@ -169,6 +171,7 @@
       const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
       blurred2.classList.add(blurredClassName);
       blurred2.textContent = head.textContent.slice(0, p);;
+      blurred2.setAttribute('title', keyword);
       head.textContent = head.textContent.slice(p);
       head.parentNode.insertBefore(document.createTextNode(''), head);
       head.parentNode.insertBefore(blurred2, head);
@@ -205,11 +208,12 @@
         ) {
           n.classList.add(blurredClassName);
           n.classList.add(keepClassName);
+          n.setAttribute('title', o.keyword);
           if (size > 5) n.style.filter += ` blur(${size}px)`;
           return;
         }
         if (o.splitted) {
-          inchworm(n, pattern);
+          inchworm(n, pattern, o.keyword);
           return;
         }
 
@@ -225,6 +229,7 @@
             const blurredSpan = document.createElement('span');
             blurredSpan.classList.add(blurredClassName);
             blurredSpan.textContent = matched.shift();
+            blurredSpan.setAttribute('title', o.keyword);
             if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
             c.parentNode.insertBefore(blurredSpan, referenceNode);
             c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
