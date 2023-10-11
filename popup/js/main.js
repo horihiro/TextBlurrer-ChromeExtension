@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', async (e) => {
-  const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
+  const { status, keywords, mode, matchCase, showValue } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue']));
 
   const applyButton = document.querySelector('#applyButton');
   const patternInput = document.querySelector('#patternInput');
   const statusCheckbox = document.querySelector('#statusCheckbox');
   const caseCheckbox = document.querySelector('#caseCheckbox');
   const regexpCheckbox = document.querySelector('#regexpCheckbox');
+  const showValueCheckbox = document.querySelector('#showValueCheckbox');
   const _bufferTextArea = document.querySelector('#_bufferTextArea');
 
   const COLOR_DEFAULT = getComputedStyle(_bufferTextArea).getPropertyValue('background-color');
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   let savedKeywords = '';
   let savedMatchCase = false;
   let savedMode = false;
+  let savedShowValue = false;
   let validationResults = [];
   let pointedRow = -1;
 
@@ -112,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       applyButton.disabled = false;
     }
     validationResults = await validateLines(lines, !regexpCheckbox.checked);
-    applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && regexpCheckbox.checked === savedMode);
+    applyButton.disabled = !validationResults.every(r => r.isValid) || (patternInput.value === savedKeywords && caseCheckbox.checked === savedMatchCase && showValueCheckbox.checked === savedShowValue && regexpCheckbox.checked === savedMode);
     const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
       const backgroundColor = curr.isValid ? (!curr.reason ? COLOR_DEFAULT : COLOR_WARNING) : COLOR_ERROR;
@@ -147,17 +149,20 @@ textarea#${patternInput.id} {
       'status': !statusCheckbox.checked ? 'disabled' : '',
       'keywords': patternInput.value,
       'mode': regexpCheckbox.checked ? 'regexp' : 'text',
-      'matchCase': caseCheckbox.checked
+      'matchCase': caseCheckbox.checked,
+      'showValue': showValueCheckbox.checked,
     });
     patternInput.focus();
     savedKeywords = patternInput.value;
     savedMode = regexpCheckbox.checked;
     savedMatchCase = caseCheckbox.checked;
+    savedShowValue = showValueCheckbox.checked;
     e.target.disabled = true;
   });
 
   statusCheckbox.addEventListener('change', async (e) => {
     caseCheckbox.disabled =
+      showValueCheckbox.disabled =
       regexpCheckbox.disabled =
       patternInput.disabled = !e.target.checked;
     applyButton.disabled = !e.target.checked || !validationResults.every(r => r.isValid);
@@ -182,6 +187,11 @@ textarea#${patternInput.id} {
     await renderBackground();
   });
   caseCheckbox.addEventListener('change', async (e) => {
+    await renderBackground();
+    patternInput.focus();
+  });
+
+  showValueCheckbox.addEventListener('change', async (e) => {
     await renderBackground();
     patternInput.focus();
   });
@@ -215,11 +225,14 @@ textarea#${patternInput.id} {
 
   statusCheckbox.checked = status !== 'disabled';
   savedMatchCase = caseCheckbox.checked = matchCase;
+  savedShowValue = showValueCheckbox.checked = showValue;
+  console.log(savedShowValue, savedShowValue.checked, showValue)
   savedMode = regexpCheckbox.checked = mode === 'regexp';
   savedKeywords = patternInput.value = keywords || '';
 
 
   caseCheckbox.disabled =
+    showValueCheckbox.disabled =
     regexpCheckbox.disabled =
     patternInput.disabled =
     applyButton.disabled = !statusCheckbox.checked;

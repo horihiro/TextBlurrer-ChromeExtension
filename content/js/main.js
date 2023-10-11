@@ -87,7 +87,7 @@
       : ''
   }
 
-  const inchworm = (e, pattern, keyword) => {
+  const inchworm = (e, pattern, keyword, options) => {
     let tail = e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, e), head = getNextTextNode(tail, e);
     let result;
     do {
@@ -126,7 +126,7 @@
       const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
       blurred1.classList.add(blurredClassName);
       blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);
-      blurred1.setAttribute('title', keyword);
+      options?.showValue && blurred1.setAttribute('title', keyword);
       tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
       tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
       tail.parentNode.insertBefore(blurred1, tail.nextSibling);
@@ -135,7 +135,7 @@
         if (pos.textContent !== '') {
           const span = document.createElement('span');
           span.classList.add(blurredClassName);
-          span.setAttribute('title', keyword);
+          options?.showValue && span.setAttribute('title', keyword);
           pos.parentNode.insertBefore(document.createTextNode(''), pos);
           pos.parentNode.insertBefore(span, pos);
           span.appendChild(pos);
@@ -147,7 +147,7 @@
       const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
       blurred2.classList.add(blurredClassName);
       blurred2.textContent = head.textContent.slice(0, p);
-      blurred2.setAttribute('title', keyword);
+      options?.showValue && blurred2.setAttribute('title', keyword);
       head.textContent = head.textContent.slice(p);
       head.parentNode.insertBefore(document.createTextNode(''), head);
       head.parentNode.insertBefore(blurred2, head);
@@ -157,7 +157,7 @@
     } while (head && tail);
   }
 
-  const blurByRegExpPatterns = (patterns, target) => {
+  const blurByRegExpPatterns = (patterns, options, target) => {
     if (patterns.length === 0) return;
     const now = Date.now();
     patterns.forEach((pattern, _, array) => {
@@ -184,12 +184,12 @@
         ) {
           n.classList.add(blurredClassName);
           n.classList.add(keepClassName);
-          n.setAttribute('title', o.keyword);
+          options?.showValue && n.setAttribute('title', o.keyword);
           if (size > 5) n.style.filter += ` blur(${size}px)`;
           return;
         }
         if (o.splitted) {
-          inchworm(n, pattern, o.keyword);
+          inchworm(n, pattern, o.keyword, options);
           return;
         }
 
@@ -205,7 +205,7 @@
             const blurredSpan = document.createElement('span');
             blurredSpan.classList.add(blurredClassName);
             blurredSpan.textContent = matched.shift();
-            blurredSpan.setAttribute('title', o.keyword);
+            options?.showValue && blurredSpan.setAttribute('title', o.keyword);
             if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
             c.parentNode.insertBefore(blurredSpan, referenceNode);
             c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
@@ -217,7 +217,7 @@
   };
 
   const observedNodes = [];
-  const blur = (keywords, target) => {
+  const blur = (keywords, options, target) => {
     const observed = target || document.body;
     if (observedNodes.includes(observed)) return;
 
@@ -244,7 +244,7 @@
           array.push(record.target);
           return array;
         }, []);
-        targets.forEach(target => blurByRegExpPatterns(keywords, target));
+        targets.forEach(target => blurByRegExpPatterns(keywords, options, target));
       });
     }
     w.__observer.observe(observed, {
@@ -252,7 +252,7 @@
       subtree: true,
       characterData: true
     });
-    blurByRegExpPatterns(keywords, observed);
+    blurByRegExpPatterns(keywords, options, observed);
   };
   const unblur = () => {
     if (!w.__observer) return;
@@ -324,12 +324,12 @@
 
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
-    const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
+    const { status, keywords, mode, matchCase, showValue } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue']));
     unblur();
     if (status === 'disabled') return;
-    blur(str2RegExpArray(keywords, mode, !!matchCase));
+    blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue});
   });
-  const { status, keywords, mode, matchCase } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase']));
+  const { status, keywords, mode, matchCase, showValue } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue']));
   if (status === 'disabled') return;
-  blur(str2RegExpArray(keywords, mode, !!matchCase));
+  blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue});
 })();
