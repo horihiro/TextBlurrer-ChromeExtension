@@ -6,6 +6,7 @@
   const maskContainerClassName = 'tb_mask_container_class';
   const textLayerClassName = 'tb_mask_text_layer_class';
   const inputCloneId = 'tb_input_clone';
+  const globalStyleId = '__blurring_style';
   const globalStyle = `.${blurredClassName} {
   filter: blur(5px)!important;
 }
@@ -327,7 +328,7 @@
         mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
         mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
         const maskBoundingBox = mask.getBoundingClientRect();
-        const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width')) - 1;
+        const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
         mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width
           ? blurredBoundingBox.width
           : tmpWidth > 0
@@ -373,7 +374,7 @@
 
     const style = document.createElement('style');
     style.innerHTML = globalStyle;
-    style.id = '__blurring_style';
+    style.id = globalStyleId;
     !observed.querySelector(`#${style.id}`) && (observed == document.body ? document.head : observed).appendChild(style);
     observedNodes.push(observed);
     if (!w.__observer) {
@@ -416,14 +417,21 @@
     w.__observer.disconnect();
     delete w.__observer
 
-    document.querySelectorAll(`.${maskContainerClassName}`).forEach((mask) => {
-      mask.parentNode.removeChild(mask);
+    inputs.map(i => i.masks).forEach((masks) => {
+      for(let pattern in masks) {
+        masks[pattern].forEach((mask) => {
+          mask.parentNode.removeChild(mask);
+        })
+      }
     });
-    const inputClone = document.querySelector(`#${inputCloneId}`);
-    inputClone && inputClone.parentNode.removeChild(inputClone);
     inputs.length = 0;
 
     const m = observedNodes.reduce((array, target) => {
+      const globalStyle = target.querySelector(`#${globalStyleId}`);
+      globalStyle && globalStyle.parentNode.removeChild(globalStyle);
+      const inputClone = target.querySelector(`#${inputCloneId}`);
+      inputClone && inputClone.parentNode.removeChild(inputClone);
+
       array.push(...target.querySelectorAll(`.${blurredClassName}`));
       return array;
     }, []);
