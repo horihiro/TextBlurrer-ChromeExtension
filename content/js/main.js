@@ -27,17 +27,9 @@
         }
         array.push(...getElementsByNodeValue(pattern, n, keywords));
         const nodearray = array.map(o => o.node);
-        let result = inlineFormatting(Array.prototype.filter.call(n.childNodes, (c) => c.nodeName === '#text').map(c => c.nodeValue).join('')).match(pattern);
-        if (result) {
-          !nodearray.includes(n) && array.push({
-            keyword: result[0],
-            node: n
-          });
-          return array;
-        }
         const textContent = getTextContentRecursive(n, {exclusives: {nodes: nodearray, nodeNames: exElmList}});
         if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
-        result = inlineFormatting(textContent).match(pattern);
+        const result = inlineFormatting(textContent).match(pattern);
         if (result) {
           !nodearray.includes(n) && array.push({
             keyword: result[0],
