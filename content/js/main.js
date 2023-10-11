@@ -41,15 +41,15 @@
     return textContent;
   };
 
-  const getElementsByNodeValue = (pattern, target, keywords) => {
+  const getElementsByNodeValue = (pattern, target, keywords, options) => {
     return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
       return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName)));
     }).reduce((array, n) => {
       if (n.nodeName !== "#text") {
         if (n.shadowRoot) {
-          blur(keywords, n.shadowRoot);
+          blur(keywords, options, n.shadowRoot);
         }
-        array.push(...getElementsByNodeValue(pattern, n, keywords));
+        array.push(...getElementsByNodeValue(pattern, n, keywords, options));
         const nodearray = array.map(o => o.node);
         const textContent = getTextContentRecursive(n, {exclusives: {nodes: nodearray, nodeNames: exElmList}});
         if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
@@ -186,7 +186,7 @@
     const now = Date.now();
     patterns.forEach((pattern, _, array) => {
       console.debug(`Searching pattern ${pattern}`);
-      const targetObjects = getElementsByNodeValue(pattern, target || document.body, array).filter((o) => {
+      const targetObjects = getElementsByNodeValue(pattern, target || document.body, array, options).filter((o) => {
         return (Array.prototype.filter.call(o.node.childNodes, (c) => {
           return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
         }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
@@ -237,7 +237,7 @@
         });
       })
     });
-    ['HTMLBodyElement', 'ShadowRoot'].includes(Object.prototype.toString.call(target).slice(8, -1)) && [...target.querySelectorAll('input')].reduce((inputs, input) => {
+    options?.blurInput && ['HTMLBodyElement', 'ShadowRoot'].includes(Object.prototype.toString.call(target).slice(8, -1)) && [...target.querySelectorAll('input')].reduce((inputs, input) => {
       const inputObj = (() => {
         const array = inputs.filter((inputObj) => inputObj.element == input);
         if (array.length > 0) return array[0];
@@ -245,7 +245,7 @@
         return inputs[inputs.length - 1];
       })();
       if (inputObj.inputHandler) return inputs;
-      inputObj.inputHandler = inputOnInput.bind({ patterns, root: target });
+      inputObj.inputHandler = inputOnInput.bind({ patterns, root: target, options });
       input.addEventListener('input', inputObj.inputHandler);
       input.addEventListener('focus', inputOnFocus);
       input.addEventListener('blur', inputOnBlur);
@@ -257,6 +257,7 @@
 
   const inputOnInput = function (e) {
     const input = e.target;
+    const options = this.options;
     this.patterns.forEach((pattern) => {
       const inputObj = inputs.filter(i => i.element == input)[0];
       if (!inputObj) return;
@@ -311,7 +312,7 @@
         mask.lastChild.style.setProperty('width', '100%');
         mask.lastChild.style.setProperty('height', '100%');
         input.parentNode.appendChild(mask);
-        mask.lastChild.setAttribute('title', blurredSpan.textContent);
+        options?.showValue && mask.lastChild.setAttribute('title', blurredSpan.textContent);
         mask.addEventListener('click', () => {
           input.focus();
         })
@@ -498,17 +499,17 @@
 
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
-    const { status, keywords, mode, matchCase, showValue } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue']));
+    const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
     unblur();
     if (status === 'disabled') return;
-    blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue});
+    blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue, blurInput});
   });
-  const { status, keywords, mode, matchCase, showValue } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue']));
+  const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
   if (status === 'disabled') return;
   window.addEventListener('resize', () => {
     inputs.forEach((input) => {
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
     });
   })
-  blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue});
+  blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue, blurInput});
 })();

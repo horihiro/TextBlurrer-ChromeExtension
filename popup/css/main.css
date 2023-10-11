@@ -148,6 +148,15 @@ input[type="checkbox"]:checked.show-value+span::before {
   background-image: url("../img/comment.svg");
 }
 
+input[type="checkbox"].blur-input+span::before {
+  -webkit-mask: url("../img/symbol-string.svg") no-repeat center center;
+  mask: url("../img/symbol-string.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.blur-input+span::before {
+  background-image: url("../img/symbol-string.svg");
+}
+
 #applyButton {
   margin-top: 10px;
   display: flex;
