@@ -149,7 +149,7 @@
       const blurred1 = document.createElement('span');
       const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
       blurred1.classList.add(blurredClassName);
-      blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);;
+      blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);
       blurred1.setAttribute('title', keyword);
       tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
       tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
@@ -170,7 +170,7 @@
       const numOfLeftSpacesInHead = reStartWithSpaces.test(head.textContent) ? head.textContent.replace(reStartWithSpaces, '$1').length : 0;
       const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
       blurred2.classList.add(blurredClassName);
-      blurred2.textContent = head.textContent.slice(0, p);;
+      blurred2.textContent = head.textContent.slice(0, p);
       blurred2.setAttribute('title', keyword);
       head.textContent = head.textContent.slice(p);
       head.parentNode.insertBefore(document.createTextNode(''), head);
