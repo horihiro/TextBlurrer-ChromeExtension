@@ -295,7 +295,6 @@
       const matched = input.value.match(new RegExp(pattern.source, `g${pattern.flags}`));
       clone.appendChild(document.createTextNode(textArray.shift()));
       const referenceNode = clone.lastChild.nextSibling;
-      const parentBoundingBox = clone.getBoundingClientRect();
       textArray.forEach((t) => {
         const blurredSpan = document.createElement('span');
         blurredSpan.classList.add(blurredClassName);
