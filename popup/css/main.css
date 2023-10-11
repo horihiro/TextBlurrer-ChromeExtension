@@ -139,6 +139,15 @@ input[type="checkbox"]:checked.case-sensitive+span::before {
   background-image: url("../img/case-sensitive.svg");
 }
 
+input[type="checkbox"].show-value+span::before {
+  -webkit-mask: url("../img/comment.svg") no-repeat center center;
+  mask: url("../img/comment.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.show-value+span::before {
+  background-image: url("../img/comment.svg");
+}
+
 #applyButton {
   margin-top: 10px;
   display: flex;
