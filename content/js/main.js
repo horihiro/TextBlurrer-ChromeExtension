@@ -51,7 +51,7 @@
         }
         array.push(...getElementsByNodeValue(pattern, n, keywords, options));
         const nodearray = array.map(o => o.node);
-        const textContent = getTextContentRecursive(n, {exclusives: {nodes: nodearray, nodeNames: exElmList}});
+        const textContent = getTextContentRecursive(n, { exclusives: { nodes: nodearray, nodeNames: exElmList } });
         if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
         const result = inlineFormatting(textContent).match(pattern);
         if (result) {
@@ -60,7 +60,7 @@
             splitted: true,
             node: n
           });
-        } 
+        }
         return array;
       }
       const result = inlineFormatting(n.textContent).match(pattern);
@@ -419,7 +419,7 @@
     delete w.__observer
 
     inputs.map(i => i.masks).forEach((masks) => {
-      for(let pattern in masks) {
+      for (let pattern in masks) {
         masks[pattern].forEach((mask) => {
           mask.parentNode.removeChild(mask);
         })
@@ -502,7 +502,7 @@
     const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
     unblur();
     if (status === 'disabled') return;
-    blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue, blurInput});
+    blur(str2RegExpArray(keywords, mode, !!matchCase), { showValue, blurInput });
   });
   const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
   if (status === 'disabled') return;
@@ -511,5 +511,5 @@
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
     });
   })
-  blur(str2RegExpArray(keywords, mode, !!matchCase), {showValue, blurInput});
+  blur(str2RegExpArray(keywords, mode, !!matchCase), { showValue, blurInput });
 })();
