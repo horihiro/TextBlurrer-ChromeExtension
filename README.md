@@ -32,6 +32,17 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.3)
+
+  - New features
+    - Blur keywords splitted into some elements ([#2](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/2))
+    - Show blurred value on mouse over blurred area 
+    - Blur value in `input` tag (experimental)  
+      :warning:  this cannot detect change by `value` property and javascript
+  - Bug fixes
+    - Improve performance by change blurring logic
+    - Blur keywords in shadow DOM
+
 ## [0.1.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.2)
 
   - New features

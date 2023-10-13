@@ -1,4 +1,5 @@
 Image: "Codicons"
-Image: Microsoft
+Author: Microsoft
+Web Site: https://github.com/microsoft/vscode-codicons
 License: Creative Commons Attribution 4.0 International License
 License Details: https://creativecommons.org/licenses/by/4.0/
