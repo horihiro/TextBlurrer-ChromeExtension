@@ -12,6 +12,12 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/dbd7d6f7-
 #### RegExp Validation
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/f7c86192-a407-4497-b4e6-ff1c98f461ca
 
+## Show value on mouseover (v0.1.3 or later)
+https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/6f3753dd-9031-43df-87af-f9f572f7b758
+
+## Blur value in `input` tag (experimental, v0.1.3 or later)
+https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/27f2c3b1-ecf0-4a1f-88df-2f6e2b948f06
+
 
 # Try this
 This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
