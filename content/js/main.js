@@ -347,6 +347,7 @@
     });
   }
   const getBackgroundColorAlongDOMTree = (element) => {
+    if (element == document) return '';
     const computedStyle = getComputedStyle(element);
     return (!/(?:^| )rgba *\( *\d+ *, *\d+ *, *\d+ *, *0 *\)(?:$| )/.test(computedStyle.getPropertyValue('background-color')))
       ? computedStyle.getPropertyValue('background-color')
