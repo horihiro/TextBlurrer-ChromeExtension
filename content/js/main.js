@@ -208,7 +208,13 @@
         ) {
           n.classList.add(blurredClassName);
           n.classList.add(keepClassName);
-          options?.showValue && n.setAttribute('title', o.keyword);
+          if (options?.showValue) {
+            const originalTitle = n.getAttribute('title');
+            if (originalTitle) {
+              n.setAttribute('data-tb-original-title', originalTitle);
+            }
+            n.setAttribute('title', o.keyword);
+          }
           if (size > 5) n.style.filter += ` blur(${size}px)`;
           return;
         }
@@ -443,6 +449,14 @@
     const now = Date.now();
     m.forEach((n) => {
       if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
+        // restore title
+        const originalTitle = n.getAttribute('data-tb-original-title');
+        if (originalTitle) {
+          n.setAttribute('title', originalTitle);
+          n.removeAttribute('data-tb-original-title');
+        }
+        else n.removeAttribute('title');
+
         // restore class
         n.classList.remove(blurredClassName);
         n.classList.remove(keepClassName);
