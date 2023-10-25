@@ -32,6 +32,14 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.43](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.4)
+
+  - New features
+    - Add a link to [new issue](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/new)
+  - Bug fixes
+    - Fix logic for getting backgroud color
+    - Restore `title` attribute
+
 ## [0.1.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.3)
 
   - New features
