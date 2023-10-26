@@ -32,7 +32,7 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
-## [0.1.43](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.4)
+## [0.1.4](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.4)
 
   - New features
     - Add a link to [new issue](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/new)
