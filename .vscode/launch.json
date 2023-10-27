@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "attach",
+      "name": "Debug on Chrome",
+      "port": 9222,
+      "preLaunchTask": "Launch Chrome"
+    },
+    {
+      "type": "msedge",
+      "request": "attach",
+      "name": "Debug on Edge",
+      "port": 9222,
+      "preLaunchTask": "Launch Edge"
+    }
+  ]
+}
