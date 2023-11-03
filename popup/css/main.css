@@ -174,3 +174,19 @@ input[type="checkbox"]:checked.blur-input+span::before {
   top: 0;
   z-index: -1;
 }
+
+div#linkContainer {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-size: small;
+}
+div#linkContainer a {
+  color: #1191ff;
+  text-decoration:underline;
+}
+
+div#linkContainer a>img {
+  filter: invert(44%) sepia(75%) saturate(3284%) hue-rotate(191deg) brightness(102%) contrast(100%);
+  height: 20px;
+}
