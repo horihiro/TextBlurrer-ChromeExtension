@@ -332,8 +332,9 @@
           }
         }
 
+        const verticalGap = (parseFloat(inputStyle.getPropertyValue('height')) - parseFloat(inputStyle.getPropertyValue('font-size')));
         mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
-        mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
+        mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - (verticalGap > 0 ? verticalGap / 2 : 0) - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
         const maskBoundingBox = mask.getBoundingClientRect();
         const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
         mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width
