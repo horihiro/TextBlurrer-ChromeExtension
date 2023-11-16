@@ -502,11 +502,11 @@
     return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
   };
 
-  const keywords2RegExp = (str, mode, matchCase) => {
-    return new RegExp((str || '').split(/\n/).map(k => {
-      const trimmed = k.trim();
-      return `(?:${mode === 'regexp' ? trimmed : escapeRegExp(trimmed)})`;
-    }).join('|'), matchCase ? '' : 'i');
+  const keywords2RegExp = (keywords, mode, matchCase) => {
+    return new RegExp(
+      (keywords || '').split(/\n/).map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`).join('|'),
+      matchCase ? '' : 'i'
+    );
   };
 
   chrome.storage.onChanged.addListener(async (changes, area) => {
