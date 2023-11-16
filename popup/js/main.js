@@ -234,7 +234,6 @@ textarea#${patternInput.id} {
       patternInput.setAttribute('title', curr.reason || '');
       return -1;
     }, row);
-    console.debug(row, patternInput.title);
   }, false);
   patternInput.addEventListener('mouseout', () => {
     pointedRow = -1;
