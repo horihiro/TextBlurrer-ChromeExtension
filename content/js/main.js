@@ -41,15 +41,15 @@
     return textContent;
   };
 
-  const getElementsByNodeValue = (pattern, target, keywords, options) => {
+  const getElementsByNodeValue = (pattern, target, options) => {
     return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
       return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName)));
     }).reduce((array, n) => {
       if (n.nodeName !== "#text") {
         if (n.shadowRoot) {
-          blur(keywords, options, n.shadowRoot);
+          blur(pattern, options, n.shadowRoot);
         }
-        array.push(...getElementsByNodeValue(pattern, n, keywords, options));
+        array.push(...getElementsByNodeValue(pattern, n, options));
         const nodearray = array.map(o => o.node);
         const textContent = getTextContentRecursive(n, { exclusives: { nodes: nodearray, nodeNames: exElmList } });
         if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
@@ -181,68 +181,66 @@
     } while (head && tail);
   }
 
-  const blurByRegExpPatterns = (patterns, options, target) => {
-    if (patterns.length === 0) return;
+  const blurByRegExpPattern = (pattern, options, target) => {
     const now = Date.now();
-    patterns.forEach((pattern, _, array) => {
-      console.debug(`Searching pattern ${pattern}`);
-      const targetObjects = getElementsByNodeValue(pattern, target || document.body, array, options).filter((o) => {
-        return (Array.prototype.filter.call(o.node.childNodes, (c) => {
-          return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
-        }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
-          && getStateOfContentEditable(o.node) !== 'true'
-      });
-      [...new Set(targetObjects)].sort((a) => {
-        return !a.exact ? 1 : a.splitted ? 1 : -1;
-      }).forEach((o) => {
-        const n = o.node;
-        if (n.classList.contains(blurredClassName)) return;
 
-        const computedStyle = getComputedStyle(n);
-        const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
-
-        // case of that the element doesn't contain nodes except the matched keyword,
-        if (o.exact
-          && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
-          && computedStyle.filter === 'none'
-        ) {
-          n.classList.add(blurredClassName);
-          n.classList.add(keepClassName);
-          if (options?.showValue) {
-            const originalTitle = n.getAttribute('title');
-            if (originalTitle) {
-              n.setAttribute('data-tb-original-title', originalTitle);
-            }
-            n.setAttribute('title', o.keyword);
-          }
-          if (size > 5) n.style.filter += ` blur(${size}px)`;
-          return;
-        }
-        if (o.splitted) {
-          inchworm(n, pattern, o.keyword, options);
-          return;
-        }
-
-        const reKeyword = new RegExp(escapeRegExp(o.keyword).replace(/ +/, '\\s+'));
-        n.childNodes.forEach((c) => {
-          if (c.nodeName !== "#text" || !reKeyword.test(c.textContent)) return;
-          const textArray = c.textContent.split(reKeyword);
-          const referenceNode = c.nextSibling;
-          const matched = c.textContent.match(new RegExp(reKeyword.source, `g${reKeyword.flags}`));
-          c.textContent = textArray.shift();
-
-          textArray.forEach((t) => {
-            const blurredSpan = document.createElement('span');
-            blurredSpan.classList.add(blurredClassName);
-            blurredSpan.textContent = matched.shift();
-            options?.showValue && blurredSpan.setAttribute('title', o.keyword);
-            if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
-            c.parentNode.insertBefore(blurredSpan, referenceNode);
-            c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
-          });
-        });
-      })
+    const targetObjects = getElementsByNodeValue(pattern, target || document.body, options).filter((o) => {
+      return (Array.prototype.filter.call(o.node.childNodes, (c) => {
+        return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
+      }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
+        && getStateOfContentEditable(o.node) !== 'true'
     });
+    [...new Set(targetObjects)].sort((a) => {
+      return !a.exact ? 1 : a.splitted ? 1 : -1;
+    }).forEach((o) => {
+      const n = o.node;
+      if (n.classList.contains(blurredClassName)) return;
+
+      const computedStyle = getComputedStyle(n);
+      const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
+
+      // case of that the element doesn't contain nodes except the matched keyword,
+      if (o.exact
+        && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
+        && computedStyle.filter === 'none'
+      ) {
+        n.classList.add(blurredClassName);
+        n.classList.add(keepClassName);
+        if (options?.showValue) {
+          const originalTitle = n.getAttribute('title');
+          if (originalTitle) {
+            n.setAttribute('data-tb-original-title', originalTitle);
+          }
+          n.setAttribute('title', o.keyword);
+        }
+        if (size > 5) n.style.filter += ` blur(${size}px)`;
+        return;
+      }
+      if (o.splitted) {
+        inchworm(n, pattern, o.keyword, options);
+        return;
+      }
+
+      const reKeyword = new RegExp(escapeRegExp(o.keyword).replace(/ +/, '\\s+'));
+      n.childNodes.forEach((c) => {
+        if (c.nodeName !== "#text" || !reKeyword.test(c.textContent)) return;
+        const textArray = c.textContent.split(reKeyword);
+        const referenceNode = c.nextSibling;
+        const matched = c.textContent.match(new RegExp(reKeyword.source, `g${reKeyword.flags}`));
+        c.textContent = textArray.shift();
+
+        textArray.forEach((t) => {
+          const blurredSpan = document.createElement('span');
+          blurredSpan.classList.add(blurredClassName);
+          blurredSpan.textContent = matched.shift();
+          options?.showValue && blurredSpan.setAttribute('title', o.keyword);
+          if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
+          c.parentNode.insertBefore(blurredSpan, referenceNode);
+          c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
+        });
+      });
+    })
+
     options?.blurInput && ['HTMLBodyElement', 'ShadowRoot'].includes(Object.prototype.toString.call(target).slice(8, -1)) && [...target.querySelectorAll('input')].reduce((inputs, input) => {
       const inputObj = (() => {
         const array = inputs.filter((inputObj) => inputObj.element == input);
@@ -251,7 +249,7 @@
         return inputs[inputs.length - 1];
       })();
       if (inputObj.inputHandler) return inputs;
-      inputObj.inputHandler = inputOnInput.bind({ patterns, root: target, options });
+      inputObj.inputHandler = inputOnInput.bind({ pattern, root: target, options });
       input.addEventListener('input', inputObj.inputHandler);
       input.addEventListener('focus', inputOnFocus);
       input.addEventListener('blur', inputOnBlur);
@@ -264,93 +262,93 @@
   const inputOnInput = function (e) {
     const input = e.target;
     const options = this.options;
-    this.patterns.forEach((pattern) => {
-      const inputObj = inputs.filter(i => i.element == input)[0];
-      if (!inputObj) return;
 
-      const patternStr = `/${pattern.source}/${pattern.flags}`;
-      if (!inputObj.masks[patternStr]) inputObj.masks[patternStr] = [];
-      while (inputObj.masks[patternStr].length > 0) {
-        inputObj.masks[patternStr][0].parentNode && inputObj.masks[patternStr][0].parentNode.removeChild(inputObj.masks[patternStr][0]);
-        inputObj.masks[patternStr].shift();
-      }
-      inputObj.masks[patternStr].length = 0;
+    const inputObj = inputs.filter(i => i.element == input)[0];
+    if (!inputObj) return;
+    const pattern = this.pattern;
 
-      if (!pattern.test(input.value)) return;
+    const patternStr = `/${pattern.source}/${pattern.flags}`;
+    if (!inputObj.masks[patternStr]) inputObj.masks[patternStr] = [];
+    while (inputObj.masks[patternStr].length > 0) {
+      inputObj.masks[patternStr][0].parentNode && inputObj.masks[patternStr][0].parentNode.removeChild(inputObj.masks[patternStr][0]);
+      inputObj.masks[patternStr].shift();
+    }
+    inputObj.masks[patternStr].length = 0;
 
-      const clone = (() => {
-        return this.root.querySelector(`#${inputCloneId}`) || document.createElement('div');
-      })();
-      if (!clone.parentNode) {
-        clone.id = inputCloneId;
-        this.root.appendChild(clone);
-      }
-      clone.textCotent = '';
-      const inputStyle = getComputedStyle(input);
-      while (clone.firstChild) {
-        clone.removeChild(clone.firstChild);
-      }
+    if (!pattern.test(input.value)) return;
+
+    const clone = (() => {
+      return this.root.querySelector(`#${inputCloneId}`) || document.createElement('div');
+    })();
+    if (!clone.parentNode) {
+      clone.id = inputCloneId;
+      this.root.appendChild(clone);
+    }
+    clone.textCotent = '';
+    const inputStyle = getComputedStyle(input);
+    while (clone.firstChild) {
+      clone.removeChild(clone.firstChild);
+    }
+    for (let s in inputStyle) {
+      if (!isNaN(parseInt(s))) continue;
+      if (!['display', 'position', 'visibility', 'top', 'left', 'overflow', 'white-space'].includes(s)) clone.style.setProperty(s, inputStyle.getPropertyValue(s));
+    }
+
+    const inputBoundingBox = input.getBoundingClientRect();
+    const size = Math.floor(parseFloat(inputStyle.fontSize) / 4);
+
+    const textArray = input.value.split(pattern);
+    const matched = input.value.match(new RegExp(pattern.source, `g${pattern.flags}`));
+    clone.appendChild(document.createTextNode(textArray.shift()));
+    const referenceNode = clone.lastChild.nextSibling;
+    textArray.forEach((t) => {
+      const blurredSpan = document.createElement('span');
+      blurredSpan.classList.add(blurredClassName);
+      blurredSpan.textContent = matched.shift();
+      if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
+      clone.insertBefore(blurredSpan, referenceNode);
+      clone.insertBefore(document.createTextNode(t), referenceNode);
+
+      const mask = document.createElement('div');
+      mask.classList.add(maskContainerClassName);
+      mask.appendChild(document.createElement('div'));
+      mask.lastChild.classList.add(textLayerClassName);
+      mask.lastChild.textContent = blurredSpan.textContent;
+      mask.lastChild.style.setProperty('width', '100%');
+      mask.lastChild.style.setProperty('height', '100%');
+      input.parentNode.appendChild(mask);
+      options?.showValue && mask.lastChild.setAttribute('title', blurredSpan.textContent);
+      mask.addEventListener('click', () => {
+        input.focus();
+      })
+
+      const blurredBoundingBox = blurredSpan.getBoundingClientRect();
+
       for (let s in inputStyle) {
         if (!isNaN(parseInt(s))) continue;
-        if (!['display', 'position', 'visibility', 'top', 'left', 'overflow', 'white-space'].includes(s)) clone.style.setProperty(s, inputStyle.getPropertyValue(s));
+        if (!['position', 'filter', 'margin', 'padding', 'border', 'top', 'left', 'overflow', 'height', 'width', 'outline'].includes(s)) {
+          mask.style.setProperty(s, inputStyle.getPropertyValue(s));
+        }
       }
 
-      const inputBoundingBox = input.getBoundingClientRect();
-      const size = Math.floor(parseFloat(inputStyle.fontSize) / 4);
+      const verticalGap = (parseFloat(inputStyle.getPropertyValue('height')) - parseFloat(inputStyle.getPropertyValue('font-size')));
+      mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
+      mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - (verticalGap > 0 ? verticalGap / 2 : 0) - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
+      const maskBoundingBox = mask.getBoundingClientRect();
+      const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
+      mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width
+        ? blurredBoundingBox.width
+        : tmpWidth > 0
+          ? tmpWidth
+          : 0}px`);
+      mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
+      mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
+      mask.style.setProperty('border', 'none');
 
-      const textArray = input.value.split(pattern);
-      const matched = input.value.match(new RegExp(pattern.source, `g${pattern.flags}`));
-      clone.appendChild(document.createTextNode(textArray.shift()));
-      const referenceNode = clone.lastChild.nextSibling;
-      textArray.forEach((t) => {
-        const blurredSpan = document.createElement('span');
-        blurredSpan.classList.add(blurredClassName);
-        blurredSpan.textContent = matched.shift();
-        if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
-        clone.insertBefore(blurredSpan, referenceNode);
-        clone.insertBefore(document.createTextNode(t), referenceNode);
+      mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
+      e.isTrusted && mask.style.setProperty('display', 'none');
 
-        const mask = document.createElement('div');
-        mask.classList.add(maskContainerClassName);
-        mask.appendChild(document.createElement('div'));
-        mask.lastChild.classList.add(textLayerClassName);
-        mask.lastChild.textContent = blurredSpan.textContent;
-        mask.lastChild.style.setProperty('width', '100%');
-        mask.lastChild.style.setProperty('height', '100%');
-        input.parentNode.appendChild(mask);
-        options?.showValue && mask.lastChild.setAttribute('title', blurredSpan.textContent);
-        mask.addEventListener('click', () => {
-          input.focus();
-        })
-
-        const blurredBoundingBox = blurredSpan.getBoundingClientRect();
-
-        for (let s in inputStyle) {
-          if (!isNaN(parseInt(s))) continue;
-          if (!['position', 'filter', 'margin', 'padding', 'border', 'top', 'left', 'overflow', 'height', 'width', 'outline'].includes(s)) {
-            mask.style.setProperty(s, inputStyle.getPropertyValue(s));
-          }
-        }
-
-        const verticalGap = (parseFloat(inputStyle.getPropertyValue('height')) - parseFloat(inputStyle.getPropertyValue('font-size')));
-        mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
-        mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - (verticalGap > 0 ? verticalGap / 2 : 0) - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
-        const maskBoundingBox = mask.getBoundingClientRect();
-        const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
-        mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width
-          ? blurredBoundingBox.width
-          : tmpWidth > 0
-            ? tmpWidth
-            : 0}px`);
-        mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
-        mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
-        mask.style.setProperty('border', 'none');
-
-        mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
-        e.isTrusted && mask.style.setProperty('display', 'none');
-
-        inputObj.masks[patternStr].push(mask);
-      });
+      inputObj.masks[patternStr].push(mask);
     });
   }
   const getBackgroundColorAlongDOMTree = (element) => {
@@ -377,7 +375,7 @@
     }
   }
   const observedNodes = [];
-  const blur = (keywords, options, target) => {
+  const blur = (pattern, options, target) => {
     const observed = target || document.body;
     if (observedNodes.includes(observed)) return;
 
@@ -402,7 +400,7 @@
           array.push(record.target);
           return array;
         }, []);
-        targets.forEach(target => blurByRegExpPatterns(keywords, options, target));
+        targets.forEach(target => blurByRegExpPattern(pattern, options, target));
       });
     }
     w.__observer.observe(observed, {
@@ -419,7 +417,7 @@
       document.body.appendChild(inputClone);
     }
 
-    blurByRegExpPatterns(keywords, options, observed);
+    blurByRegExpPattern(pattern, options, observed);
   };
   const unblur = () => {
     if (!w.__observer) return;
@@ -504,13 +502,11 @@
     return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
   };
 
-  const str2RegExpArray = (str, mode, matchCase) => {
-    const stringArray = (str || '').split(/\n/).map(k => k.trim()).filter(k => k !== '') || [];
-    return mode === 'regexp' ? (
-      stringArray.map(matchCase ? (k => new RegExp(k)) : (k => new RegExp(k, 'i')))
-    ) : (
-      stringArray.map(matchCase ? (k => new RegExp(escapeRegExp(k))) : (k => new RegExp(escapeRegExp(k), 'i')))
-    );
+  const keywords2RegExp = (str, mode, matchCase) => {
+    return new RegExp((str || '').split(/\n/).map(k => {
+      const trimmed = k.trim();
+      return `(?:${mode === 'regexp' ? trimmed : escapeRegExp(trimmed)})`;
+    }).join('|'), matchCase ? '' : 'i');
   };
 
   chrome.storage.onChanged.addListener(async (changes, area) => {
@@ -518,7 +514,7 @@
     const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
     unblur();
     if (status === 'disabled') return;
-    blur(str2RegExpArray(keywords, mode, !!matchCase), { showValue, blurInput });
+    blur(keywords2RegExp(keywords, mode, !!matchCase), { showValue, blurInput });
   });
   const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
   if (status === 'disabled') return;
@@ -527,5 +523,5 @@
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
     });
   })
-  blur(str2RegExpArray(keywords, mode, !!matchCase), { showValue, blurInput });
+  blur(keywords2RegExp(keywords, mode, !!matchCase), { showValue, blurInput });
 })();
