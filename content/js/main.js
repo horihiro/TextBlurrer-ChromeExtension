@@ -504,7 +504,7 @@
 
   const keywords2RegExp = (keywords, mode, matchCase) => {
     return new RegExp(
-      (keywords || '').split(/\n/).map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`).join('|'),
+      (keywords || '').split(/\n/).filter(k => !!k.trim()).map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`).join('|'),
       matchCase ? '' : 'i'
     );
   };
@@ -513,11 +513,11 @@
     if (area !== 'local') return;
     const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
     unblur();
-    if (status === 'disabled') return;
+    if (status === 'disabled' || keywords.trim() === '') return;
     blur(keywords2RegExp(keywords, mode, !!matchCase), { showValue, blurInput });
   });
   const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
-  if (status === 'disabled') return;
+  if (status === 'disabled' || keywords.trim() === '') return;
   window.addEventListener('resize', () => {
     inputs.forEach((input) => {
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
