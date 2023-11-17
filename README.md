@@ -38,6 +38,12 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.5](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.5)
+
+  - Bug fixes
+    - Fix misalignment of mask position([#26](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/26))
+    - Improve performance with many keywords/patterns
+
 ## [0.1.4](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.4)
 
   - New features
