@@ -38,6 +38,11 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.7](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.7)
+
+  - Bug fixes
+    - Fix handling empty line in keyword/pattern list([#29](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/29))
+
 ## [0.1.5](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.5)
 
   - Bug fixes
