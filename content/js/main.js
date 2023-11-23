@@ -332,8 +332,14 @@
       }
 
       const verticalGap = (parseFloat(inputStyle.getPropertyValue('height')) - parseFloat(inputStyle.getPropertyValue('font-size')));
-      mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft + parseFloat(inputStyle.getPropertyValue('border-left-width'))}px`);
-      mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - (verticalGap > 0 ? verticalGap / 2 : 0) - blurredSpan.offsetHeight - parseFloat(inputStyle.getPropertyValue('border-bottom-width')) - parseFloat(inputStyle.getPropertyValue('padding-bottom'))}px`);
+      const isBorderBox = inputStyle.getPropertyValue('box-sizing') === 'border-box';
+      mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft
+        + (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-left-width')))
+        }px`);
+      mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight
+        - (verticalGap > 0 ? verticalGap / 2 : 0)
+        - (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-bottom-width')) + parseFloat(inputStyle.getPropertyValue('padding-bottom')))
+        }px`);
       const maskBoundingBox = mask.getBoundingClientRect();
       const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
       mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width
@@ -513,11 +519,11 @@
     if (area !== 'local') return;
     const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
     unblur();
-    if (status === 'disabled' || keywords.trim() === '') return;
+    if (status === 'disabled' || !keywords || keywords.trim() === '') return;
     blur(keywords2RegExp(keywords, mode, !!matchCase), { showValue, blurInput });
   });
   const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
-  if (status === 'disabled' || keywords.trim() === '') return;
+  if (status === 'disabled' || !keywords || keywords.trim() === '') return;
   window.addEventListener('resize', () => {
     inputs.forEach((input) => {
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
