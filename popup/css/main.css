@@ -157,6 +157,15 @@ input[type="checkbox"]:checked.blur-input+span::before {
   background-image: url("../img/symbol-string.svg");
 }
 
+input[type="checkbox"].blur-title+span::before {
+  -webkit-mask: url("../img/tab-title.svg") no-repeat center center;
+  mask: url("../img/tab-title.svg") no-repeat center center;
+}
+
+input[type="checkbox"]:checked.blur-title+span::before {
+  background-image: url("../img/tab-title.svg");
+}
+
 #applyButton {
   margin-top: 10px;
   display: flex;

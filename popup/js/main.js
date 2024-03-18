@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async (e) => {
-  const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
+  const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
 
   const applyButton = document.querySelector('#applyButton');
   const patternInput = document.querySelector('#patternInput');
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   const regexpCheckbox = document.querySelector('#regexpCheckbox');
   const showValueCheckbox = document.querySelector('#showValueCheckbox');
   const blurInputCheckbox = document.querySelector('#blurInputCheckbox');
+  const blurTitleCheckbox = document.querySelector('#blurTitleCheckbox');
   const _bufferTextArea = document.querySelector('#_bufferTextArea');
 
   const COLOR_DEFAULT = getComputedStyle(_bufferTextArea).getPropertyValue('background-color');
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   let savedMode = false;
   let savedShowValue = false;
   let savedBlurInput = false;
+  let savedBlurTitle = false;
   let validationResults = [];
   let pointedRow = -1;
 
@@ -122,7 +124,8 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       caseCheckbox.checked === savedMatchCase &&
       showValueCheckbox.checked === savedShowValue &&
       regexpCheckbox.checked === savedMode && 
-      blurInputCheckbox.checked === savedBlurInput
+      blurInputCheckbox.checked === savedBlurInput && 
+      blurTitleCheckbox.checked === savedBlurTitle
     );
     const re = /\*(\d+)( - [\d.]+px\))$/;
     const bgColors = validationResults.reduce((prev, curr, pos, array) => {
@@ -161,6 +164,7 @@ textarea#${patternInput.id} {
       'matchCase': caseCheckbox.checked,
       'showValue': showValueCheckbox.checked,
       'blurInput': blurInputCheckbox.checked,
+      'blurTitle': blurTitleCheckbox.checked,
     });
     patternInput.focus();
     savedKeywords = patternInput.value;
@@ -168,6 +172,7 @@ textarea#${patternInput.id} {
     savedMatchCase = caseCheckbox.checked;
     savedShowValue = showValueCheckbox.checked;
     savedBlurInput = blurInputCheckbox.checked;
+    savedBlurTitle = blurTitleCheckbox.checked;
     e.target.disabled = true;
   });
 
@@ -175,6 +180,7 @@ textarea#${patternInput.id} {
     caseCheckbox.disabled =
       showValueCheckbox.disabled =
       blurInputCheckbox.disabled =
+      blurTitleCheckbox.disabled = 
       regexpCheckbox.disabled =
       patternInput.disabled = !e.target.checked;
     applyButton.disabled = !e.target.checked || !validationResults.every(r => r.isValid);
@@ -213,6 +219,11 @@ textarea#${patternInput.id} {
     patternInput.focus();
   });
 
+  blurTitleCheckbox.addEventListener('change', async (e) => {
+    await renderBackground();
+    patternInput.focus();
+  });
+
   patternInput.addEventListener('scroll', renderBackground);
   patternInput.addEventListener('scroll', () => {
     if (patternInput.scrollLeft < textAreaPaddingLeft) patternInput.scrollLeft = 0;
@@ -243,12 +254,14 @@ textarea#${patternInput.id} {
   savedMatchCase = caseCheckbox.checked = matchCase;
   savedShowValue = showValueCheckbox.checked = showValue;
   savedBlurInput = blurInputCheckbox.checked = blurInput;
+  savedBlurTitle = blurTitleCheckbox.checked = blurTitle;
   savedMode = regexpCheckbox.checked = mode === 'regexp';
   savedKeywords = patternInput.value = keywords || '';
 
 
   caseCheckbox.disabled =
     blurInputCheckbox.disabled =
+    blurTitleCheckbox.disabled =
     showValueCheckbox.disabled =
     regexpCheckbox.disabled =
     patternInput.disabled =
