@@ -339,7 +339,8 @@
         }px`);
       mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight
         - (verticalGap > 0 ? verticalGap / 2 : 0)
-        - (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-bottom-width')) + parseFloat(inputStyle.getPropertyValue('padding-bottom')))
+        - (isBorderBox ? - parseFloat(inputStyle.getPropertyValue('border-top-width')) : parseFloat(inputStyle.getPropertyValue('border-bottom-width')) )
+        - parseFloat(inputStyle.getPropertyValue('padding-bottom'))
         }px`);
       const maskBoundingBox = mask.getBoundingClientRect();
       const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
@@ -349,7 +350,7 @@
           ? tmpWidth
           : 0}px`);
       mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
-      mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
+      mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue('z-index')) + 1}`);
       mask.style.setProperty('border', 'none');
 
       mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
@@ -362,7 +363,7 @@
     if (element == document) return '';
     const computedStyle = getComputedStyle(element);
     return (!/(?:^| )rgba *\( *\d+ *, *\d+ *, *\d+ *, *0 *\)(?:$| )/.test(computedStyle.getPropertyValue('background-color')))
-      ? computedStyle.getPropertyValue('background-color')
+      ? computedStyle.getPropertyValue('background-color').replace(/rgba *\( *(\d+) *, *(\d+) *, *(\d+) *, *[^)]+ *\)/, 'rgb($1, $2, $3)')
       : getBackgroundColorAlongDOMTree(element.parentNode);
   }
   const inputOnFocus = (e) => {
@@ -520,7 +521,7 @@
     const title = target.textContent;
     let result = title.match(pattern);
     while (result) {
-      const mask = ''.padStart(result[0].length, '*');
+      const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
       result = target.textContent.match(pattern);
       if (!target.getAttribute(originalTitleAttributeName)) {
