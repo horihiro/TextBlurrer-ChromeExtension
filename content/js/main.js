@@ -3,6 +3,7 @@
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
   const blurredClassName = 'tb_blurred_class';
   const keepClassName = 'tb_keep_this_class';
+  const originalTitleAttributeName = 'data-tb-original-title';
   const maskContainerClassName = 'tb_mask_container_class';
   const textLayerClassName = 'tb_mask_text_layer_class';
   const inputCloneId = 'tb_input_clone';
@@ -338,7 +339,8 @@
         }px`);
       mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight
         - (verticalGap > 0 ? verticalGap / 2 : 0)
-        - (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-bottom-width')) + parseFloat(inputStyle.getPropertyValue('padding-bottom')))
+        - (isBorderBox ? - parseFloat(inputStyle.getPropertyValue('border-top-width')) : parseFloat(inputStyle.getPropertyValue('border-bottom-width')) )
+        - parseFloat(inputStyle.getPropertyValue('padding-bottom'))
         }px`);
       const maskBoundingBox = mask.getBoundingClientRect();
       const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
@@ -348,7 +350,7 @@
           ? tmpWidth
           : 0}px`);
       mask.style.setProperty('height', `${blurredBoundingBox.height}px`);
-      mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue) + 1}`);
+      mask.style.setProperty('z-index', `${parseInt(inputStyle.getPropertyValue('z-index')) + 1}`);
       mask.style.setProperty('border', 'none');
 
       mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
@@ -361,7 +363,7 @@
     if (element == document) return '';
     const computedStyle = getComputedStyle(element);
     return (!/(?:^| )rgba *\( *\d+ *, *\d+ *, *\d+ *, *0 *\)(?:$| )/.test(computedStyle.getPropertyValue('background-color')))
-      ? computedStyle.getPropertyValue('background-color')
+      ? computedStyle.getPropertyValue('background-color').replace(/rgba *\( *(\d+) *, *(\d+) *, *(\d+) *, *[^)]+ *\)/, 'rgb($1, $2, $3)')
       : getBackgroundColorAlongDOMTree(element.parentNode);
   }
   const inputOnFocus = (e) => {
@@ -456,10 +458,10 @@
     m.forEach((n) => {
       if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
         // restore title
-        const originalTitle = n.getAttribute('data-tb-original-title');
+        const originalTitle = n.getAttribute(originalTitleAttributeName);
         if (originalTitle) {
           n.setAttribute('title', originalTitle);
-          n.removeAttribute('data-tb-original-title');
+          n.removeAttribute(originalTitleAttributeName);
         }
         else n.removeAttribute('title');
 
@@ -504,6 +506,50 @@
     console.debug(`Took ${Date.now() - now} ms`)
   };
 
+  const unblurTabTitle = (title) => {
+    if (!title) return;
+    if (title.getAttribute(originalTitleAttributeName)) {
+      title.textContent = title.getAttribute(originalTitleAttributeName);
+      title.removeAttribute(originalTitleAttributeName);
+    }
+    if (!w.__titleObserver) return;
+    w.__titleObserver.disconnect();
+    delete w.__titleObserver;
+  };
+
+  const blurTabTitleCore = (pattern, target) => {
+    const title = target.textContent;
+    let result = title.match(pattern);
+    while (result) {
+      const mask = new Array(result[0].length).fill('*').join('');
+      target.textContent = target.textContent.replace(result[0], mask);
+      result = target.textContent.match(pattern);
+      if (!target.getAttribute(originalTitleAttributeName)) {
+        target.setAttribute(originalTitleAttributeName, title);
+      }
+    }
+  };
+
+  const blurTabTitle = (pattern, title) => {
+    if (!title) return;
+    blurTabTitleCore(pattern, title);
+    if (!w.__titleObserver) {
+      w.__titleObserver = new MutationObserver((records) => {
+        w.__titleObserver.disconnect();
+        title.removeAttribute(originalTitleAttributeName);
+        records.forEach((record) => {
+          blurTabTitleCore(pattern, record.target);
+        });
+        w.__titleObserver.observe(title, {
+          characterData: true, childList: true
+        });
+      });
+    }
+    w.__titleObserver.observe(title, {
+      characterData: true, childList: true
+    });
+  };
+
   const escapeRegExp = (str) => {
     return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
   };
@@ -515,19 +561,25 @@
     );
   };
 
+  const title = document.querySelector('title');
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
-    const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
+    const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
     unblur();
+    unblurTabTitle(title);
     if (status === 'disabled' || !keywords || keywords.trim() === '') return;
-    blur(keywords2RegExp(keywords, mode, !!matchCase), { showValue, blurInput });
+    const pattern = keywords2RegExp(keywords, mode, !!matchCase);
+    blur(pattern, { showValue, blurInput });
+    blurTitle && blurTabTitle(pattern, title);
   });
-  const { status, keywords, mode, matchCase, showValue, blurInput } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput']));
+  const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
   if (status === 'disabled' || !keywords || keywords.trim() === '') return;
   window.addEventListener('resize', () => {
     inputs.forEach((input) => {
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
     });
   })
-  blur(keywords2RegExp(keywords, mode, !!matchCase), { showValue, blurInput });
+  const pattern = keywords2RegExp(keywords, mode, !!matchCase);
+  blur(pattern, { showValue, blurInput });
+  blurTitle && blurTabTitle(pattern, title)
 })();
