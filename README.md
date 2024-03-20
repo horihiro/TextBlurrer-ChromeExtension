@@ -38,6 +38,18 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.9](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.9)
+
+  - New features
+    - Add title masking by the keywords
+  - Bug fixes
+    - Improve misalignment of mask position for input element
+
+## [0.1.8](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.8)
+
+  - Bug fixes
+    - Fix misalignment of mask position for input element with `box-sizing` set to `border-box` ([#32](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/32))
+
 ## [0.1.7](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.7)
 
   - Bug fixes
