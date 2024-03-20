@@ -41,7 +41,7 @@ If you can try a development version, the following steps are needed.
 ## [0.1.9](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.9)
 
   - New features
-    - Add title masking by the keywords
+    - Add **experimental** option to mask title by keywords
   - Bug fixes
     - Improve misalignment of mask position for input element
 
