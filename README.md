@@ -19,6 +19,10 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/6f3753dd-
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/27f2c3b1-ecf0-4a1f-88df-2f6e2b948f06
 
 
+## Mask value in title (experimental, v0.1.9 or later)
+https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/25c24d50-b478-4e63-9388-20b391046fc6
+
+
 # Try this
 This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
 
