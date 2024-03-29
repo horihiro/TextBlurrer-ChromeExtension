@@ -339,7 +339,7 @@
         }px`);
       mask.style.setProperty('top', `${input.offsetTop + input.offsetHeight - blurredSpan.offsetHeight
         - (verticalGap > 0 ? verticalGap / 2 : 0)
-        - (isBorderBox ? - parseFloat(inputStyle.getPropertyValue('border-top-width')) : parseFloat(inputStyle.getPropertyValue('border-bottom-width')) )
+        - (isBorderBox ? - parseFloat(inputStyle.getPropertyValue('border-top-width')) : parseFloat(inputStyle.getPropertyValue('border-bottom-width')))
         - parseFloat(inputStyle.getPropertyValue('padding-bottom'))
         }px`);
       const maskBoundingBox = mask.getBoundingClientRect();
@@ -506,7 +506,8 @@
     console.debug(`Took ${Date.now() - now} ms`)
   };
 
-  const unblurTabTitle = (title) => {
+  const unblurTabTitle = () => {
+    const title = document.querySelector('title');
     if (!title) return;
     if (title.getAttribute(originalTitleAttributeName)) {
       title.textContent = title.getAttribute(originalTitleAttributeName);
@@ -530,24 +531,31 @@
     }
   };
 
-  const blurTabTitle = (pattern, title) => {
-    if (!title) return;
-    blurTabTitleCore(pattern, title);
+  const blurTabTitle = (pattern) => {
     if (!w.__titleObserver) {
       w.__titleObserver = new MutationObserver((records) => {
-        w.__titleObserver.disconnect();
-        title.removeAttribute(originalTitleAttributeName);
-        records.forEach((record) => {
-          blurTabTitleCore(pattern, record.target);
-        });
-        w.__titleObserver.observe(title, {
-          characterData: true, childList: true
+        records.some((record) => {
+          return Array.from(record.addedNodes).some((node) => {
+            if (node.nodeName === 'TITLE') {
+              blurTabTitleCore(pattern, node);
+              return true;
+            } else if (node.nodeName === "#text" && node.parentNode.nodeName === "TITLE") {
+              blurTabTitleCore(pattern, node.parentNode);
+              return true;
+            }
+            return false;
+          });
         });
       });
     }
-    w.__titleObserver.observe(title, {
-      characterData: true, childList: true
-    });
+    w.__titleObserver.observe(document.head, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    })
+    const title = document.querySelector('title');
+    if (!title) return;
+    blurTabTitleCore(pattern, title);
   };
 
   const escapeRegExp = (str) => {
@@ -561,16 +569,15 @@
     );
   };
 
-  const title = document.querySelector('title');
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
     const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
     unblur();
-    unblurTabTitle(title);
+    unblurTabTitle();
     if (status === 'disabled' || !keywords || keywords.trim() === '') return;
     const pattern = keywords2RegExp(keywords, mode, !!matchCase);
     blur(pattern, { showValue, blurInput });
-    blurTitle && blurTabTitle(pattern, title);
+    blurTitle && blurTabTitle(pattern);
   });
   const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
   if (status === 'disabled' || !keywords || keywords.trim() === '') return;
@@ -581,5 +588,5 @@
   })
   const pattern = keywords2RegExp(keywords, mode, !!matchCase);
   blur(pattern, { showValue, blurInput });
-  blurTitle && blurTabTitle(pattern, title)
+  blurTitle && blurTabTitle(pattern)
 })();
