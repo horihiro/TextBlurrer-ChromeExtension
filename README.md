@@ -38,6 +38,12 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.1.10](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.10)
+
+  - Bug fixes
+    - Improve unblurring on updating text node by javascript
+    - Improve title masking
+
 ## [0.1.9](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.9)
 
   - New features
