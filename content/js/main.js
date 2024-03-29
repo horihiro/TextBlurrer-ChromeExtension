@@ -185,6 +185,9 @@
   const blurByRegExpPattern = (pattern, options, target) => {
     const now = Date.now();
 
+    if (target.classList && target.classList.contains(blurredClassName)) {
+      unblurCore(target);
+    }
     const targetObjects = getElementsByNodeValue(pattern, target || document.body, options).filter((o) => {
       return (Array.prototype.filter.call(o.node.childNodes, (c) => {
         return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
@@ -456,54 +459,58 @@
 
     const now = Date.now();
     m.forEach((n) => {
-      if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
-        // restore title
-        const originalTitle = n.getAttribute(originalTitleAttributeName);
-        if (originalTitle) {
-          n.setAttribute('title', originalTitle);
-          n.removeAttribute(originalTitleAttributeName);
-        }
-        else n.removeAttribute('title');
-
-        // restore class
-        n.classList.remove(blurredClassName);
-        n.classList.remove(keepClassName);
-        if (n.classList.length == 0) n.removeAttribute('class');
-
-        // restore style
-        n.style.filter = n.style.filter.replace(/blur\([^\)]+\)/, '').trim();
-        if (n.style.length == 0) n.removeAttribute('style');
-        return;
-      }
-      const p = n.parentNode;
-      n.childNodes.forEach((c) => {
-        if (c.nodeName !== '#text') {
-          p.insertBefore(c, n);
-          return;
-        }
-
-        let textContainer = n.previousSibling;
-        do {
-          if (!textContainer || textContainer.nodeName !== '#text') {
-            p.insertBefore(c, n);
-            break;
-          }
-          if (textContainer.previousSibling && textContainer.textContent === '') {
-            textContainer = textContainer.previousSibling;
-            continue;
-          }
-          textContainer.textContent += c.textContent;
-
-          if (n.nextSibling?.nodeName === '#text') {
-            n.previousSibling.textContent += n.nextSibling.textContent;
-            p.removeChild(n.nextSibling);
-          }
-          break;
-        } while (true);
-      });
-      p.removeChild(n);
+      unblurCore(n);
     });
     console.debug(`Took ${Date.now() - now} ms`)
+  };
+  
+  const unblurCore = (n) => {
+    if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
+      // restore title
+      const originalTitle = n.getAttribute(originalTitleAttributeName);
+      if (originalTitle) {
+        n.setAttribute('title', originalTitle);
+        n.removeAttribute(originalTitleAttributeName);
+      }
+      else n.removeAttribute('title');
+
+      // restore class
+      n.classList.remove(blurredClassName);
+      n.classList.remove(keepClassName);
+      if (n.classList.length == 0) n.removeAttribute('class');
+
+      // restore style
+      n.style.filter = n.style.filter.replace(/blur\([^\)]+\)/, '').trim();
+      if (n.style.length == 0) n.removeAttribute('style');
+      return;
+    }
+    const p = n.parentNode;
+    n.childNodes.forEach((c) => {
+      if (c.nodeName !== '#text') {
+        p.insertBefore(c, n);
+        return;
+      }
+
+      let textContainer = n.previousSibling;
+      do {
+        if (!textContainer || textContainer.nodeName !== '#text') {
+          p.insertBefore(c, n);
+          break;
+        }
+        if (textContainer.previousSibling && textContainer.textContent === '') {
+          textContainer = textContainer.previousSibling;
+          continue;
+        }
+        textContainer.textContent += c.textContent;
+
+        if (n.nextSibling?.nodeName === '#text') {
+          n.previousSibling.textContent += n.nextSibling.textContent;
+          p.removeChild(n.nextSibling);
+        }
+        break;
+      } while (true);
+    });
+    p.removeChild(n);
   };
 
   const unblurTabTitle = (title) => {
