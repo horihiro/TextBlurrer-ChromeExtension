@@ -2,6 +2,7 @@
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
   const CLASS_NAME_BLURRED = 'tb-blurred';
+  const CLASS_PREFIX_BLURRED_GROUP = 'tb-blurred-group-';
   const CLASS_NAME_KEEP = 'tb-keep-this';
   const ATTR_NAME_ORIGINAL_TITLE = 'data-tb-original-title';
   const CLASS_NAME_MASK_CONTAINER = 'tb-mask-container';
@@ -149,7 +150,9 @@
       const reStartWithSpaces = /^(\s+).*/;
       const blurred1 = document.createElement('span');
       const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
+      const groupedClass = `${CLASS_PREFIX_BLURRED_GROUP}${Date.now()}`;
       blurred1.classList.add(CLASS_NAME_BLURRED);
+      blurred1.classList.add(groupedClass);
       blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);
       options?.showValue && blurred1.setAttribute('title', keyword);
       tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
@@ -160,6 +163,7 @@
         if (pos.textContent !== '') {
           const span = document.createElement('span');
           span.classList.add(CLASS_NAME_BLURRED);
+          span.classList.add(groupedClass);
           options?.showValue && span.setAttribute('title', keyword);
           pos.parentNode.insertBefore(document.createTextNode(''), pos);
           pos.parentNode.insertBefore(span, pos);
@@ -171,6 +175,7 @@
       const numOfLeftSpacesInHead = reStartWithSpaces.test(head.textContent) ? head.textContent.replace(reStartWithSpaces, '$1').length : 0;
       const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
       blurred2.classList.add(CLASS_NAME_BLURRED);
+      blurred2.classList.add(groupedClass);
       blurred2.textContent = head.textContent.slice(0, p);
       options?.showValue && blurred2.setAttribute('title', keyword);
       head.textContent = head.textContent.slice(p);
@@ -185,8 +190,15 @@
   const blurByRegExpPattern = (pattern, options, target) => {
     const now = Date.now();
 
-    if (target.classList && target.classList.contains(CLASS_NAME_BLURRED)) {
-      unblurCore(target);
+    if (target.classList && target.classList.contains(CLASS_NAME_BLURRED) && !pattern.test(target.textContent)) {
+      if (!Array.from(target.classList).some((className) => className.startsWith(CLASS_PREFIX_BLURRED_GROUP))) unblurCore(target);
+      else {
+        const groupedClass = Array.from(target.classList).filter((className) => className.startsWith(CLASS_PREFIX_BLURRED_GROUP))[0];
+        const blurredGroup = document.querySelectorAll(`.${groupedClass}`);
+        !pattern.test(Array.from(blurredGroup).map((blurred) => blurred.textContent).join('')) && blurredGroup.forEach((blurred) => {
+          unblurCore(blurred);
+        });
+      }
     }
     const targetObjects = getElementsByNodeValue(pattern, target || document.body, options).filter((o) => {
       return (Array.prototype.filter.call(o.node.childNodes, (c) => {
