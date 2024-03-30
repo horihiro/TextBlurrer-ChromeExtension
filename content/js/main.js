@@ -1,29 +1,29 @@
 (async () => {
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
-  const blurredClassName = 'tb_blurred_class';
-  const keepClassName = 'tb_keep_this_class';
-  const originalTitleAttributeName = 'data-tb-original-title';
-  const maskContainerClassName = 'tb_mask_container_class';
-  const textLayerClassName = 'tb_mask_text_layer_class';
-  const inputCloneId = 'tb_input_clone';
-  const globalStyleId = '__blurring_style';
-  const globalStyle = `.${blurredClassName} {
+  const CLASS_NAME_BLURRED = 'tb-blurred';
+  const CLASS_NAME_KEEP = 'tb-keep-this';
+  const ATTR_NAME_ORIGINAL_TITLE = 'data-tb-original-title';
+  const CLASS_NAME_MASK_CONTAINER = 'tb-mask-container';
+  const CLASS_NAME_TEXT_LAYER = 'tb-mask-text-layer';
+  const ID_INPUT_CLONE = 'tb-input-clone';
+  const ID_GLOBAL_STYLE = '__blurring-style';
+  const GLOBAL_STYLE = `.${CLASS_NAME_BLURRED} {
   filter: blur(5px)!important;
 }
-.${maskContainerClassName} {
+.${CLASS_NAME_MASK_CONTAINER} {
   border: none!important;
   overflow: hidden!important;
 }
 
-#${inputCloneId}, .${maskContainerClassName}, .${textLayerClassName} {
+#${ID_INPUT_CLONE}, .${CLASS_NAME_MASK_CONTAINER}, .${CLASS_NAME_TEXT_LAYER} {
   position: absolute!important;
   border: none!important;
   overflow: hidden!important;
   white-space: nowrap!important;
 }
 
-#${inputCloneId} {
+#${ID_INPUT_CLONE} {
   visibility: hidden!important;
   white-space-collapse: preserve!important;
 }`;
@@ -44,7 +44,7 @@
 
   const getElementsByNodeValue = (pattern, target, options) => {
     return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
-      return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(blurredClassName)));
+      return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(CLASS_NAME_BLURRED)));
     }).reduce((array, n) => {
       if (n.nodeName !== "#text") {
         if (n.shadowRoot) {
@@ -119,7 +119,7 @@
       let str = '';
       let pos = tail;
       do {
-        str = `${str}${pos.parentNode.classList.contains(blurredClassName) ? '' : pos.textContent}`;
+        str = `${str}${pos.parentNode.classList.contains(CLASS_NAME_BLURRED) ? '' : pos.textContent}`;
         result = inlineFormatting(str).match(pattern);
         if (result) break;
         pos = getNextTextNode(pos, e);
@@ -134,7 +134,7 @@
       str = '';
       pos = head;
       do {
-        str = `${pos.parentNode.classList.contains(blurredClassName) ? '' : pos.textContent}${str}`;
+        str = `${pos.parentNode.classList.contains(CLASS_NAME_BLURRED) ? '' : pos.textContent}${str}`;
         result = inlineFormatting(str).match(pattern);
         if (result) break;
         pos = getPreviousTextNode(pos, e);
@@ -149,7 +149,7 @@
       const reStartWithSpaces = /^(\s+).*/;
       const blurred1 = document.createElement('span');
       const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
-      blurred1.classList.add(blurredClassName);
+      blurred1.classList.add(CLASS_NAME_BLURRED);
       blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);
       options?.showValue && blurred1.setAttribute('title', keyword);
       tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
@@ -159,7 +159,7 @@
       while (pos && pos != head) {
         if (pos.textContent !== '') {
           const span = document.createElement('span');
-          span.classList.add(blurredClassName);
+          span.classList.add(CLASS_NAME_BLURRED);
           options?.showValue && span.setAttribute('title', keyword);
           pos.parentNode.insertBefore(document.createTextNode(''), pos);
           pos.parentNode.insertBefore(span, pos);
@@ -170,7 +170,7 @@
       const blurred2 = document.createElement('span');
       const numOfLeftSpacesInHead = reStartWithSpaces.test(head.textContent) ? head.textContent.replace(reStartWithSpaces, '$1').length : 0;
       const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
-      blurred2.classList.add(blurredClassName);
+      blurred2.classList.add(CLASS_NAME_BLURRED);
       blurred2.textContent = head.textContent.slice(0, p);
       options?.showValue && blurred2.setAttribute('title', keyword);
       head.textContent = head.textContent.slice(p);
@@ -185,7 +185,7 @@
   const blurByRegExpPattern = (pattern, options, target) => {
     const now = Date.now();
 
-    if (target.classList && target.classList.contains(blurredClassName)) {
+    if (target.classList && target.classList.contains(CLASS_NAME_BLURRED)) {
       unblurCore(target);
     }
     const targetObjects = getElementsByNodeValue(pattern, target || document.body, options).filter((o) => {
@@ -198,7 +198,7 @@
       return !a.exact ? 1 : a.splitted ? 1 : -1;
     }).forEach((o) => {
       const n = o.node;
-      if (n.classList.contains(blurredClassName)) return;
+      if (n.classList.contains(CLASS_NAME_BLURRED)) return;
 
       const computedStyle = getComputedStyle(n);
       const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
@@ -208,8 +208,8 @@
         && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
         && computedStyle.filter === 'none'
       ) {
-        n.classList.add(blurredClassName);
-        n.classList.add(keepClassName);
+        n.classList.add(CLASS_NAME_BLURRED);
+        n.classList.add(CLASS_NAME_KEEP);
         if (options?.showValue) {
           const originalTitle = n.getAttribute('title');
           if (originalTitle) {
@@ -235,7 +235,7 @@
 
         textArray.forEach((t) => {
           const blurredSpan = document.createElement('span');
-          blurredSpan.classList.add(blurredClassName);
+          blurredSpan.classList.add(CLASS_NAME_BLURRED);
           blurredSpan.textContent = matched.shift();
           options?.showValue && blurredSpan.setAttribute('title', o.keyword);
           if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
@@ -282,10 +282,10 @@
     if (!pattern.test(input.value)) return;
 
     const clone = (() => {
-      return this.root.querySelector(`#${inputCloneId}`) || document.createElement('div');
+      return this.root.querySelector(`#${ID_INPUT_CLONE}`) || document.createElement('div');
     })();
     if (!clone.parentNode) {
-      clone.id = inputCloneId;
+      clone.id = ID_INPUT_CLONE;
       this.root.appendChild(clone);
     }
     clone.textCotent = '';
@@ -307,16 +307,16 @@
     const referenceNode = clone.lastChild.nextSibling;
     textArray.forEach((t) => {
       const blurredSpan = document.createElement('span');
-      blurredSpan.classList.add(blurredClassName);
+      blurredSpan.classList.add(CLASS_NAME_BLURRED);
       blurredSpan.textContent = matched.shift();
       if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
       clone.insertBefore(blurredSpan, referenceNode);
       clone.insertBefore(document.createTextNode(t), referenceNode);
 
       const mask = document.createElement('div');
-      mask.classList.add(maskContainerClassName);
+      mask.classList.add(CLASS_NAME_MASK_CONTAINER);
       mask.appendChild(document.createElement('div'));
-      mask.lastChild.classList.add(textLayerClassName);
+      mask.lastChild.classList.add(CLASS_NAME_TEXT_LAYER);
       mask.lastChild.textContent = blurredSpan.textContent;
       mask.lastChild.style.setProperty('width', '100%');
       mask.lastChild.style.setProperty('height', '100%');
@@ -391,8 +391,8 @@
     if (observedNodes.includes(observed)) return;
 
     const style = document.createElement('style');
-    style.innerHTML = globalStyle;
-    style.id = globalStyleId;
+    style.innerHTML = GLOBAL_STYLE;
+    style.id = ID_GLOBAL_STYLE;
     !observed.querySelector(`#${style.id}`) && (observed == document.body ? document.head : observed).appendChild(style);
     observedNodes.push(observed);
     if (!w.__observer) {
@@ -421,10 +421,10 @@
     });
 
     const inputClone = (() => {
-      return document.querySelector(`#${inputCloneId}`) || document.createElement('div');
+      return document.querySelector(`#${ID_INPUT_CLONE}`) || document.createElement('div');
     })();
     if (!inputClone.parentNode) {
-      inputClone.id = inputCloneId;
+      inputClone.id = ID_INPUT_CLONE;
       document.body.appendChild(inputClone);
     }
 
@@ -445,12 +445,12 @@
     inputs.length = 0;
 
     const m = observedNodes.reduce((array, target) => {
-      const globalStyle = target.querySelector(`#${globalStyleId}`);
-      globalStyle && globalStyle.parentNode.removeChild(globalStyle);
-      const inputClone = target.querySelector(`#${inputCloneId}`);
+      const GLOBAL_STYLE = target.querySelector(`#${ID_GLOBAL_STYLE}`);
+      GLOBAL_STYLE && GLOBAL_STYLE.parentNode.removeChild(GLOBAL_STYLE);
+      const inputClone = target.querySelector(`#${ID_INPUT_CLONE}`);
       inputClone && inputClone.parentNode.removeChild(inputClone);
 
-      array.push(...target.querySelectorAll(`.${blurredClassName}`));
+      array.push(...target.querySelectorAll(`.${CLASS_NAME_BLURRED}`));
       return array;
     }, []);
     observedNodes.length = 0;
@@ -465,18 +465,18 @@
   };
   
   const unblurCore = (n) => {
-    if (n.classList.contains(blurredClassName) && n.classList.contains(keepClassName)) {
+    if (n.classList.contains(CLASS_NAME_BLURRED) && n.classList.contains(CLASS_NAME_KEEP)) {
       // restore title
-      const originalTitle = n.getAttribute(originalTitleAttributeName);
+      const originalTitle = n.getAttribute(ATTR_NAME_ORIGINAL_TITLE);
       if (originalTitle) {
         n.setAttribute('title', originalTitle);
-        n.removeAttribute(originalTitleAttributeName);
+        n.removeAttribute(ATTR_NAME_ORIGINAL_TITLE);
       }
       else n.removeAttribute('title');
 
       // restore class
-      n.classList.remove(blurredClassName);
-      n.classList.remove(keepClassName);
+      n.classList.remove(CLASS_NAME_BLURRED);
+      n.classList.remove(CLASS_NAME_KEEP);
       if (n.classList.length == 0) n.removeAttribute('class');
 
       // restore style
@@ -516,9 +516,9 @@
   const unblurTabTitle = () => {
     const title = document.querySelector('title');
     if (!title) return;
-    if (title.getAttribute(originalTitleAttributeName)) {
-      title.textContent = title.getAttribute(originalTitleAttributeName);
-      title.removeAttribute(originalTitleAttributeName);
+    if (title.getAttribute(ATTR_NAME_ORIGINAL_TITLE)) {
+      title.textContent = title.getAttribute(ATTR_NAME_ORIGINAL_TITLE);
+      title.removeAttribute(ATTR_NAME_ORIGINAL_TITLE);
     }
     if (!w.__titleObserver) return;
     w.__titleObserver.disconnect();
@@ -532,8 +532,8 @@
       const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
       result = target.textContent.match(pattern);
-      if (!target.getAttribute(originalTitleAttributeName)) {
-        target.setAttribute(originalTitleAttributeName, title);
+      if (!target.getAttribute(ATTR_NAME_ORIGINAL_TITLE)) {
+        target.setAttribute(ATTR_NAME_ORIGINAL_TITLE, title);
       }
     }
   };
