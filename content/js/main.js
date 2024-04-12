@@ -34,49 +34,6 @@
   };
   const inputs = [];
 
-  const getTextContentRecursive = (target, options) => {
-    const textContent = !target.childNodes ? target.textContent : Array.prototype.reduce.call(target.childNodes, (allTextContent, node) => {
-      if (options?.exclusives?.nodeNames?.includes(node.nodeName.toLowerCase()) || options?.exclusives?.nodes?.includes(node)) return allTextContent;
-      if (node.nodeName === '#text') return `${allTextContent}${node.textContent}`;
-      return `${allTextContent}${getTextContentRecursive(node, options)}`;
-    }, '');
-    return textContent;
-  };
-
-  const getElementsByNodeValue = (pattern, target, options) => {
-    return Array.prototype.filter.call((target || document.body).childNodes, (n) => {
-      return !exElmList.includes(n.nodeName.toLowerCase()) && (n.nodeName.toLowerCase() !== 'span' || !(n.classList.contains(CLASS_NAME_BLURRED)));
-    }).reduce((array, n) => {
-      if (n.nodeName !== "#text") {
-        if (n.shadowRoot) {
-          blur(pattern, options, n.shadowRoot);
-        }
-        array.push(...getElementsByNodeValue(pattern, n, options));
-        const nodearray = array.map(o => o.node);
-        const textContent = getTextContentRecursive(n, { exclusives: { nodes: nodearray, nodeNames: exElmList } });
-        if (pattern.source.length <= 1 || /^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(pattern.source)) return array;
-        const result = inlineFormatting(textContent).match(pattern);
-        if (result) {
-          !nodearray.includes(n) && array.push({
-            keyword: result[0],
-            splitted: true,
-            node: n
-          });
-        }
-        return array;
-      }
-      const result = inlineFormatting(n.textContent).match(pattern);
-      if (result) {
-        array.push({
-          keyword: result[0],
-          exact: result[result.index] === result.input,
-          node: n.parentNode
-        });
-      }
-      return array;
-    }, []);
-  };
-
   const getNextTextNode = (e, root) => {
     if (!e) return null;
     if (e.firstChild) return e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, root);
@@ -113,79 +70,143 @@
       : ''
   }
 
-  const inchworm = (e, pattern, keyword, options) => {
-    let tail = e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, e), head = getNextTextNode(tail, e);
-    let result;
+  const getElementsToBeBlurred = (pattern, target, options) => {
+    let textNode = getNextTextNode(target, target);
+    if (!textNode) return;
+    let keywordPosition = 0, pos = textNode.textContent.length;
     do {
-      let str = '';
-      let pos = tail;
-      do {
-        str = `${str}${pos.parentNode.classList.contains(CLASS_NAME_BLURRED) ? '' : pos.textContent}`;
-        result = inlineFormatting(str).match(pattern);
-        if (result) break;
-        pos = getNextTextNode(pos, e);
-      } while (!result && pos);
-      head = pos;
-      if (!head) {
-        tail = getNextTextNode(head, e);
-        head = getNextTextNode(tail, e);
+      const matchDetail = target.textContent.slice(keywordPosition).match(pattern);
+      if (!matchDetail) break;
+      // console.log(matchDetail[0])
+      keywordPosition += matchDetail.index;
+      while (pos <= keywordPosition) {
+        textNode = getNextTextNode(textNode, target);
+        // console.log( location.href, `"${target.textContent.slice(pos, pos + textNode.textContent.length).replace(/\n/g, '\\n')}"`);
+        if (!textNode) break;
+        pos += textNode.textContent.length;
+      }
+      if (pos <= keywordPosition) {
+        matchDetail = target.textContent.slice(keywordPosition).match(pattern);
+        return;
+      };
+
+      keywordPosition += matchDetail[0].length;
+      const textNodeArray = [];
+      textNodeArray.push(textNode);
+
+      while (!textNodeArray.map(t => t.textContent).join('').match(matchDetail[0])) {
+        textNode = getNextTextNode(textNode, target);
+        if (!textNode) break;
+        textNodeArray.push(textNode);
+        pos += textNode.textContent.length;
+      }
+      if (!textNodeArray.map(t => t.textContent).join('').match(pattern)) {
+        continue
+      };
+
+      while (textNodeArray.slice(1).map(t => t.textContent).join('').match(matchDetail[0])) {
+        textNodeArray.shift();
+      }
+      if (exElmList.includes(textNodeArray.at(0).parentNode.nodeName.toLowerCase()) || exElmList.includes(textNodeArray.at(-1).parentNode.nodeName.toLowerCase())) {
         continue;
       }
-
-      str = '';
-      pos = head;
-      do {
-        str = `${pos.parentNode.classList.contains(CLASS_NAME_BLURRED) ? '' : pos.textContent}${str}`;
-        result = inlineFormatting(str).match(pattern);
-        if (result) break;
-        pos = getPreviousTextNode(pos, e);
-      } while (pos);
-      tail = pos;
-      if (!tail) {
-        tail = getNextTextNode(head, e);
-        head = getNextTextNode(tail, e);
-        continue;
+      const value = textNodeArray.map(t => t.textContent).join('');
+      const from = {
+        node: textNodeArray.at(0),
+        startIndex: (value.match(pattern)?.index || 0)
+      };
+      const to = {
+        node: textNodeArray.at(-1),
+        endIndex: textNodeArray.at(-1).length + (value.match(pattern)?.index || 0) + matchDetail[0].length - value.length - 1
+      };
+      const isBlurred = (node) => {
+        do {
+          if (node.classList?.contains(CLASS_NAME_BLURRED)) return true;
+          node = node.parentNode;
+        } while (node);
+        return false;
       }
-
-      const reStartWithSpaces = /^(\s+).*/;
-      const blurred1 = document.createElement('span');
-      const numOfLeftSpacesInTail = reStartWithSpaces.test(tail.textContent) ? tail.textContent.replace(reStartWithSpaces, '$1').length : 0;
-      const groupedClass = `${CLASS_PREFIX_BLURRED_GROUP}${Date.now()}`;
-      blurred1.classList.add(CLASS_NAME_BLURRED);
-      blurred1.classList.add(groupedClass);
-      blurred1.textContent = tail.textContent.slice(result.index + numOfLeftSpacesInTail);
-      options?.showValue && blurred1.setAttribute('title', keyword);
-      tail.textContent = tail.textContent.slice(0, result.index + numOfLeftSpacesInTail);
-      tail.parentNode.insertBefore(document.createTextNode(''), tail.nextSibling);
-      tail.parentNode.insertBefore(blurred1, tail.nextSibling);
-      pos = getNextTextNode(blurred1.firstChild, e);
-      while (pos && pos != head) {
-        if (pos.textContent !== '') {
-          const span = document.createElement('span');
-          span.classList.add(CLASS_NAME_BLURRED);
-          span.classList.add(groupedClass);
-          options?.showValue && span.setAttribute('title', keyword);
-          pos.parentNode.insertBefore(document.createTextNode(''), pos);
-          pos.parentNode.insertBefore(span, pos);
-          span.appendChild(pos);
+      const nodeBeforeBlurred = document.createTextNode(from.node.textContent.slice(0, from.startIndex));
+      const nodeAfterBlurred = document.createTextNode(to.node.textContent.slice(to.endIndex + 1));
+      const insertNodes = [];
+      const removeNodes = [];
+      if (from.node == to.node) {
+        let prevTextNode = textNode;
+        textNode = getNextTextNode(textNode, target);
+        if (!from.node.parentNode
+          || exElmList.includes(from.node.parentNode.nodeName.toLowerCase())
+          || isBlurred(from.node.parentNode)) {
+            if (!textNode) break;
+            pos += textNode.textContent.length;
+            continue;
         }
-        pos = getNextTextNode(pos, e);
-      }
-      const blurred2 = document.createElement('span');
-      const numOfLeftSpacesInHead = reStartWithSpaces.test(head.textContent) ? head.textContent.replace(reStartWithSpaces, '$1').length : 0;
-      const p = head.textContent.trim().length - inlineFormatting(str).length + result.index + result[0].length + numOfLeftSpacesInHead;
-      blurred2.classList.add(CLASS_NAME_BLURRED);
-      blurred2.classList.add(groupedClass);
-      blurred2.textContent = head.textContent.slice(0, p);
-      options?.showValue && blurred2.setAttribute('title', keyword);
-      head.textContent = head.textContent.slice(p);
-      head.parentNode.insertBefore(document.createTextNode(''), head);
-      head.parentNode.insertBefore(blurred2, head);
 
-      tail = getNextTextNode(head, e);
-      head = getNextTextNode(tail, e);
-    } while (head && tail);
-  }
+        const computedStyle = getComputedStyle(from.node.parentNode);
+        const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
+        if (to.node.textContent === matchDetail[0] && computedStyle.filter === 'none') {
+          from.node.parentNode.classList.add(CLASS_NAME_BLURRED);
+          from.node.parentNode.classList.add(CLASS_NAME_KEEP);
+          if (options?.showValue) {
+            const originalTitle = from.node.parentNode.getAttribute('title');
+            if (originalTitle) {
+              from.node.parentNode.setAttribute('data-tb-original-title', originalTitle);
+            }
+            from.node.parentNode.setAttribute('title', matchDetail[0]);
+          }
+          if (size > 5) from.node.parentNode.style.filter += ` blur(${size}px)`;
+          if (!textNode) break;
+          pos += textNode.textContent.length;
+          continue;
+        }
+        const nodeBlurred = document.createElement('span');
+        nodeBlurred.classList.add(CLASS_NAME_BLURRED);
+        nodeBlurred.textContent = from.node.textContent.slice(from.startIndex, to.endIndex + 1);
+        options?.showValue && nodeBlurred.setAttribute('title', matchDetail[0]);
+        insertNodes.push({ node: nodeBeforeBlurred, refNode: from.node, target: from.node.parentNode });
+        insertNodes.push({ node: nodeBlurred, refNode: from.node, target: from.node.parentNode });
+        insertNodes.push({ node: nodeAfterBlurred, refNode: from.node, target: from.node.parentNode });
+        removeNodes.push(from.node);
+      } else {
+        const now = Date.now();
+        if (!from.node.parentNode || !to.node.parentNode
+          || exElmList.includes(from.node.parentNode.nodeName.toLowerCase()) || exElmList.includes(from.node.parentNode.nodeName.toLowerCase())
+          || isBlurred(from.node.parentNode) || isBlurred(to.node.parentNode)) return;
+        const nodeBlurredFrom = document.createElement('span');
+        nodeBlurredFrom.classList.add(CLASS_NAME_BLURRED);
+        nodeBlurredFrom.classList.add(`${CLASS_PREFIX_BLURRED_GROUP}${now}`);
+        nodeBlurredFrom.textContent = from.node.textContent.slice(from.startIndex);
+        insertNodes.push({ node: nodeBeforeBlurred, refNode: from.node, target: from.node.parentNode });
+        insertNodes.push({ node: nodeBlurredFrom, refNode: from.node, target: from.node.parentNode });
+
+        let workingTextNode = getNextTextNode(from.node, target);
+        removeNodes.push(from.node);
+        while (workingTextNode != to.node) {
+          const nodeBlurred = document.createElement('span');
+          nodeBlurred.textContent = workingTextNode.textContent;
+          nodeBlurred.classList.add(CLASS_NAME_BLURRED);
+          nodeBlurred.classList.add(`${CLASS_PREFIX_BLURRED_GROUP}${now}`);
+          insertNodes.push({ node: nodeBlurred, refNode: workingTextNode, target: workingTextNode.parentNode });
+          removeNodes.push(workingTextNode);
+          workingTextNode = getNextTextNode(workingTextNode, target);
+        }
+
+        const nodeBlurredTo = document.createElement('span');
+        nodeBlurredTo.classList.add(CLASS_NAME_BLURRED);
+        nodeBlurredTo.classList.add(`${CLASS_PREFIX_BLURRED_GROUP}${now}`);
+        nodeBlurredTo.textContent = to.node.textContent.slice(0, to.endIndex + 1);
+        insertNodes.push({ node: nodeBlurredTo, refNode: to.node, target: to.node.parentNode });
+        insertNodes.push({ node: nodeAfterBlurred, refNode: to.node, target: to.node.parentNode });
+        removeNodes.push(to.node);
+      }
+      insertNodes.forEach((n) => {
+        n.target.insertBefore(n.node, n.refNode);
+      });
+      removeNodes.forEach((n) => {
+        n.parentNode.removeChild(n);
+      });
+      textNode = nodeAfterBlurred;
+    } while (true);
+  };
 
   const blurByRegExpPattern = (pattern, options, target) => {
     const now = Date.now();
@@ -200,62 +221,15 @@
         });
       }
     }
-    const targetObjects = getElementsByNodeValue(pattern, target || document.body, options).filter((o) => {
-      return (Array.prototype.filter.call(o.node.childNodes, (c) => {
-        return c.nodeName === '#text' && pattern.test(inlineFormatting(c.textContent));
-      }).length > 0 || pattern.test(inlineFormatting(o.node.textContent)))
-        && getStateOfContentEditable(o.node) !== 'true'
-    });
-    [...new Set(targetObjects)].sort((a) => {
-      return !a.exact ? 1 : a.splitted ? 1 : -1;
-    }).forEach((o) => {
-      const n = o.node;
-      if (n.classList.contains(CLASS_NAME_BLURRED)) return;
+    getElementsToBeBlurred(pattern, target || document.body, options);
 
-      const computedStyle = getComputedStyle(n);
-      const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
-
-      // case of that the element doesn't contain nodes except the matched keyword,
-      if (o.exact
-        && Array.prototype.every.call(n.childNodes, c => c.nodeName === '#text')
-        && computedStyle.filter === 'none'
-      ) {
-        n.classList.add(CLASS_NAME_BLURRED);
-        n.classList.add(CLASS_NAME_KEEP);
-        if (options?.showValue) {
-          const originalTitle = n.getAttribute('title');
-          if (originalTitle) {
-            n.setAttribute('data-tb-original-title', originalTitle);
-          }
-          n.setAttribute('title', o.keyword);
-        }
-        if (size > 5) n.style.filter += ` blur(${size}px)`;
-        return;
-      }
-      if (o.splitted) {
-        inchworm(n, pattern, o.keyword, options);
-        return;
-      }
-
-      const reKeyword = new RegExp(escapeRegExp(o.keyword).replace(/ +/, '\\s+'));
-      n.childNodes.forEach((c) => {
-        if (c.nodeName !== "#text" || !reKeyword.test(c.textContent)) return;
-        const textArray = c.textContent.split(reKeyword);
-        const referenceNode = c.nextSibling;
-        const matched = c.textContent.match(new RegExp(reKeyword.source, `g${reKeyword.flags}`));
-        c.textContent = textArray.shift();
-
-        textArray.forEach((t) => {
-          const blurredSpan = document.createElement('span');
-          blurredSpan.classList.add(CLASS_NAME_BLURRED);
-          blurredSpan.textContent = matched.shift();
-          options?.showValue && blurredSpan.setAttribute('title', o.keyword);
-          if (size > 5) blurredSpan.style.filter = `blur(${size}px)`;
-          c.parentNode.insertBefore(blurredSpan, referenceNode);
-          c.parentNode.insertBefore(document.createTextNode(t), referenceNode);
-        });
+    const blurInShadowRoot = (target) => {
+      target.shadowRoot && blur(pattern, options, target.shadowRoot);
+      target.childNodes.forEach((n) => {
+        n.nodeName !== '#text' && blurInShadowRoot(n);
       });
-    })
+    };
+    blurInShadowRoot(target);
 
     options?.blurInput && ['HTMLBodyElement', 'ShadowRoot'].includes(Object.prototype.toString.call(target).slice(8, -1)) && [...target.querySelectorAll('input')].reduce((inputs, input) => {
       const inputObj = (() => {
@@ -369,6 +343,7 @@
       mask.style.setProperty('border', 'none');
 
       mask.style.setProperty('background-color', getBackgroundColorAlongDOMTree(input));
+      mask.lastChild.classList.add(CLASS_NAME_BLURRED);
       e.isTrusted && mask.style.setProperty('display', 'none');
 
       inputObj.masks[patternStr].push(mask);
@@ -423,15 +398,17 @@
           array.push(record.target);
           return array;
         }, []);
+        w.__observer.disconnect();
         targets.forEach(target => blurByRegExpPattern(pattern, options, target));
+        observedNodes.forEach((target) => {
+          w.__observer.observe(target, {
+            childList: true,
+            subtree: true,
+            characterData: true
+          });
+        });
       });
     }
-    w.__observer.observe(observed, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-
     const inputClone = (() => {
       return document.querySelector(`#${ID_INPUT_CLONE}`) || document.createElement('div');
     })();
@@ -441,15 +418,23 @@
     }
 
     blurByRegExpPattern(pattern, options, observed);
+    w.__observer.observe(observed, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
   };
   const unblur = () => {
     if (!w.__observer) return;
     w.__observer.disconnect();
     delete w.__observer
 
-    inputs.map(i => i.masks).forEach((masks) => {
-      for (let pattern in masks) {
-        masks[pattern].forEach((mask) => {
+    inputs.forEach((inputObj) => {
+      inputObj.element.removeEventListener('input', inputObj.inputHandler);
+      inputObj.element.removeEventListener('focus', inputOnFocus);
+      inputObj.element.removeEventListener('blur', inputOnBlur);
+      for (let pattern in inputObj.masks) {
+        inputObj.masks[pattern].forEach((mask) => {
           mask.parentNode.removeChild(mask);
         })
       }
@@ -475,7 +460,7 @@
     });
     console.debug(`Took ${Date.now() - now} ms`)
   };
-  
+
   const unblurCore = (n) => {
     if (n.classList.contains(CLASS_NAME_BLURRED) && n.classList.contains(CLASS_NAME_KEEP)) {
       // restore title
