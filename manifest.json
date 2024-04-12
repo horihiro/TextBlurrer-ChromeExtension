@@ -11,6 +11,9 @@
     "default_icon": "img/icon128.png",
     "default_popup": "popup/main.html"
   },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
   "content_scripts": [
     {
       "all_frames": true,

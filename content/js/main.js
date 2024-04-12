@@ -28,6 +28,27 @@
   visibility: hidden!important;
   white-space-collapse: preserve!important;
 }`;
+
+  let port = null;
+  const messageQueue = [];
+  const onMessage = async (message/* , sender, sendResponse */) => {
+    if (messageQueue.length > 0) await send2Background();
+  }
+  const send2Background = async (message) => {
+    const msg = messageQueue.shift() || message;
+    try {
+      await port.postMessage(msg);
+    } catch {
+      messageQueue.push(msg);
+      port = chrome.runtime.connect({ name: 'text-blurrer' });
+      port.onMessage.addListener(onMessage);
+    }
+  };
+
+  chrome.runtime.onMessage.addListener(async (request) => {
+    await send2Background(location.href);
+  });
+
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
@@ -475,7 +496,7 @@
     });
     console.debug(`Took ${Date.now() - now} ms`)
   };
-  
+
   const unblurCore = (n) => {
     if (n.classList.contains(CLASS_NAME_BLURRED) && n.classList.contains(CLASS_NAME_KEEP)) {
       // restore title
@@ -590,16 +611,19 @@
 
   chrome.storage.onChanged.addListener(async (changes, area) => {
     if (area !== 'local') return;
-    const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
+    const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle, exclusionUrls } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle', 'exclusionUrls']));
     unblur();
     unblurTabTitle();
     if (status === 'disabled' || !keywords || keywords.trim() === '') return;
+    if (exclusionUrls && exclusionUrls.split(/\n/).length > 0 && exclusionUrls.split(/\n/).some((url) => new RegExp(url).test(location.href))) return;
+
     const pattern = keywords2RegExp(keywords, mode, !!matchCase);
     blur(pattern, { showValue, blurInput });
     blurTitle && blurTabTitle(pattern);
   });
-  const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
+  const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle, exclusionUrls } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle', 'exclusionUrls']));
   if (status === 'disabled' || !keywords || keywords.trim() === '') return;
+  if (exclusionUrls && exclusionUrls.split(/\n/).length > 0 && exclusionUrls.split(/\n/).some((url) => new RegExp(url).test(location.href))) return;
   window.addEventListener('resize', () => {
     inputs.forEach((input) => {
       input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
@@ -607,5 +631,5 @@
   })
   const pattern = keywords2RegExp(keywords, mode, !!matchCase);
   blur(pattern, { showValue, blurInput });
-  blurTitle && blurTabTitle(pattern)
+  blurTitle && blurTabTitle(pattern);
 })();
