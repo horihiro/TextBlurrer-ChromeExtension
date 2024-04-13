@@ -32,23 +32,25 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   let savedBlurTitle = false;
   const validationResults = {};
 
-  const onStorageChanged = async (changes, area) => {
-    if (area !== 'local' || !changes?.urlsInCurrentTab) return;
-
-    const oldValue = exclusionInput.value.split(/\n/);
-    const newValue = Array.from(new Set(oldValue.concat([...changes.urlsInCurrentTab.newValue.sort()]).filter((l, i, a) => l !== '')));
-    if (oldValue.sort().join('\n') === newValue.concat().sort().join('\n')) return;
-    exclusionInput.value = newValue.join('\n');
-    await renderBackground({ target: exclusionInput });
-    applyButton.disabled = false;
+  const escapeRegExp = (str) => {
+    return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
   };
-  chrome.storage.onChanged.addListener(onStorageChanged);
+
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
-    chrome.storage.local.set({
-      'urlsInCurrentTab': []
-    });
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tabs[0].id, { message: 'requestUrl' });
+    await chrome.tabs.sendMessage(tabs[0].id, { method: 'getUrl' });
+    exclusionInput.focus();
+  });
+
+  chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if (message.method === 'getUrlResponse') {
+      const currentValue = exclusionInput.value.split(/\n/);
+      const escapedUrl = `^${escapeRegExp(message.url)}$`;
+      if (currentValue.includes(escapedUrl)) return;
+      exclusionInput.value = exclusionInput.value.trimEnd() + '\n' + escapedUrl;
+      await renderBackground({ target: exclusionInput });
+      applyButton.disabled = false;
+    }
   });
   const hasCaptureGroups = (regexStr) => {
     return new Promise((resolve) => {
@@ -180,7 +182,7 @@ textarea#${e.target.id} {
     await chrome.storage.local.set({
       'status': !statusCheckbox.checked ? 'disabled' : '',
       'keywords': patternInput.value,
-      'exclusionUrls': exclusionInput.value.split(/\n/).filter(l => l !== '').join('\n'),
+      'exclusionUrls': exclusionInput.value,
       'mode': regexpCheckbox.checked ? 'regexp' : 'text',
       'matchCase': caseCheckbox.checked,
       'showValue': showValueCheckbox.checked,
@@ -189,7 +191,7 @@ textarea#${e.target.id} {
     });
     patternInput.focus();
     savedKeywords = patternInput.value;
-    savedExclusionUrls = exclusionInput.value.split(/\n/).filter(l => l !== '').join('\n');
+    savedExclusionUrls = exclusionInput.value;
     savedMode = regexpCheckbox.checked;
     savedMatchCase = caseCheckbox.checked;
     savedShowValue = showValueCheckbox.checked;
