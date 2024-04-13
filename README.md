@@ -23,6 +23,7 @@ If you want NOT to blur keywords in specific sites/frames, you can specify URLs 
 
 ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b38cd45-66dd-4021-96a8-e67180e8cc4f)
 
+You can add URLs on the current tab to the list by clicking `+ Add URLs in the current tab` on the popup. 
 
 # Try this
 This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
