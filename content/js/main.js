@@ -28,6 +28,21 @@
   visibility: hidden!important;
   white-space-collapse: preserve!important;
 }`;
+
+const send2popup = async (message) => {
+    chrome.runtime.sendMessage(message);
+  }
+
+  chrome.runtime.onMessage.addListener(async (message, sender) => {
+    if (message.method === 'getUrl') {
+      await send2popup({
+        method: 'getUrlResponse',
+        isTop: window.top === window,
+        url: location.href
+      });
+    }
+  });
+
   const getStateOfContentEditable = (element) => {
     if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
     return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
@@ -573,24 +588,20 @@
     );
   };
 
-  chrome.storage.onChanged.addListener(async (changes, area) => {
-    if (area !== 'local') return;
-    const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
+  const init = async () => {
+    const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle, exclusionUrls } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle', 'exclusionUrls']));
     unblur();
     unblurTabTitle();
     if (status === 'disabled' || !keywords || keywords.trim() === '') return;
+    if (exclusionUrls && exclusionUrls.split(/\n/).length > 0 && exclusionUrls.split(/\n/).filter(l => !!l).some((url) => new RegExp(url).test(location.href))) return;
+
     const pattern = keywords2RegExp(keywords, mode, !!matchCase);
     blur(pattern, { showValue, blurInput });
     blurTitle && blurTabTitle(pattern);
+  };
+  chrome.storage.onChanged.addListener(async (changes, area) => {
+    if (area !== 'local') return;
+    await init();
   });
-  const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle']));
-  if (status === 'disabled' || !keywords || keywords.trim() === '') return;
-  window.addEventListener('resize', () => {
-    inputs.forEach((input) => {
-      input.element.dispatchEvent(new InputEvent('input', { data: input.value }));
-    });
-  })
-  const pattern = keywords2RegExp(keywords, mode, !!matchCase);
-  blur(pattern, { showValue, blurInput });
-  blurTitle && blurTabTitle(pattern)
+  await init();
 })();

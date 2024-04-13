@@ -5,17 +5,9 @@
   <title>Text Blurrer Popup</title>
   <link rel="stylesheet" type="text/css" href="./css/main.css">
   <script src="./js/main.js"></script>
-  <style>
-  </style>
 </head>
 
 <body>
-  <div id="linkContainer">
-    <div id="linkWrapper">
-      <a href="https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/new" target="_blank"
-        rel="noopener noreferrer">Report an issue<img src="./img/arrow.svg"/></a><br>
-    </div>
-  </div>
   <div id="toggleButton">
     <label class="switch">
       <input type="checkbox" id="statusCheckbox">
@@ -24,7 +16,12 @@
     <span>Enabled</span>
   </div>
 
-  <div class="settings-conainer">
+  <input id="tab-keywords" type="radio" role="tab" name="tab-radio" class="tab-input" value="usage" checked="">
+  <h4 class="tab-label-heading selected"><label class="tab-label" for="tab-keywords">Blurring keywords</label></h4>
+  <input id="tab-exclusion" type="radio" role="tab" name="tab-radio" class="tab-input" value="type">
+  <h4 class="tab-label-heading"><label class="tab-label" for="tab-exclusion">Exclusion URL patterns</label></h4>
+
+  <div class="settings-conainer tab-panel" role="tab-panel" id="tab-panel-keywords">
 
     <div class="checkbox-container">
       <label>
@@ -51,6 +48,20 @@
 
     <textarea title="" id="patternInput" placeholder="" rows="10"></textarea>
 
+  </div>
+  <div class="settings-conainer tab-panel" role="tab-panel" id="tab-panel-exclusion">
+    <div class="footer">
+      <span id="addUrlsInCurrentTab">+ Add URLs in the current tab</span>
+    </div>
+    <textarea title="" id="exclusionInput" placeholder="" rows="10"></textarea>
+  </div>
+  <div class="footer">
+    <div id="linkContainer">
+      <div id="linkWrapper">
+        <a href="https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/new" target="_blank"
+          rel="noopener noreferrer">Report an issue<img src="./img/arrow.svg" /></a><br>
+      </div>
+    </div>
     <div class="button-container">
       <button id="applyButton">apply</button>
     </div>
