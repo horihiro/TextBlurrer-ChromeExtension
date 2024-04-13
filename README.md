@@ -38,11 +38,16 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
-## [0.1.10](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.10)
+## [0.2.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.0)
 
+Refactoring blurring logic to improve performance and maintainability.
+
+  - New features
+    - Add exclusion URL list
   - Bug fixes
-    - Improve unblurring on updating text node by javascript
-    - Improve title masking
+    - Improve title masking ([#38](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/38), [#39](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/39))
+    - Improve unblurring on updating text node by javascript ([#40](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/40))
+    - Improve inputting keywords using RegExp assersions ([#41](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/31))
 
 ## [0.1.9](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.9)
 
