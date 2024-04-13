@@ -18,6 +18,11 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/6f3753dd-
 ## Blur value in `input` tag (experimental, v0.1.3 or later)
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/27f2c3b1-ecf0-4a1f-88df-2f6e2b948f06
 
+## Exclusion URL list (v0.2.0 or later)
+If you want NOT to blur keywords in specific sites/frames, you can specify URLs of the site in the `Exclusion URL Patterns` tab.
+
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b38cd45-66dd-4021-96a8-e67180e8cc4f)
+
 
 # Try this
 This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
@@ -43,7 +48,7 @@ If you can try a development version, the following steps are needed.
 Refactoring blurring logic to improve performance and maintainability.
 
   - New features
-    - Add exclusion URL list
+    - Add exclusion URL pattern list
   - Bug fixes
     - Improve title masking ([#38](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/38), [#39](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/39))
     - Improve unblurring on updating text node by javascript ([#40](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/40))
