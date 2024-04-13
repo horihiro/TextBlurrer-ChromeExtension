@@ -36,6 +36,13 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
   };
 
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 's' && ((e.ctrlKey && !e.metaKey) || (!e.ctrlKey && e.metaKey))) {
+      e.preventDefault();
+      applyButton.click();
+    }
+  });
+
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
     const urlInfo = {
       returnFromTop: false,
