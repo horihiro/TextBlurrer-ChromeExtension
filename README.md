@@ -49,6 +49,8 @@ Refactoring blurring logic to improve performance and maintainability.
 
   - New features
     - Add exclusion URL pattern list
+    - Add shortcut key on popup :
+      - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change
   - Bug fixes
     - Improve title masking ([#38](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/38), [#39](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/39))
     - Improve unblurring on updating text node by javascript ([#40](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/40))
