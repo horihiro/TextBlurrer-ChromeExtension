@@ -19,7 +19,7 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/6f3753dd-
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/27f2c3b1-ecf0-4a1f-88df-2f6e2b948f06
 
 ## Exclusion URL list (v0.2.0 or later)
-If you want NOT to blur keywords in specific sites/frames, you can specify URLs of the site in the `Exclusion URL Patterns` tab.
+If you want NOT to blur keywords in specific sites/frames, you can specify URLs of the site in the `Exclusion URL patterns` tab.
 
 ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b38cd45-66dd-4021-96a8-e67180e8cc4f)
 
@@ -48,7 +48,7 @@ If you can try a development version, the following steps are needed.
 Refactoring blurring logic to improve performance and maintainability.
 
   - New features
-    - Add exclusion URL pattern list
+    - Disable blurring on listed sites on [Exclusion URL pattern list](#exclusion-url-list-v020-or-later)
     - Add shortcut key on popup :
       - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change
   - Bug fixes
