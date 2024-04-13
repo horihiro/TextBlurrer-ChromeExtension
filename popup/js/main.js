@@ -37,21 +37,38 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   };
 
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tabs[0].id, { method: 'getUrl' });
-    exclusionInput.focus();
-  });
+    const urlInfo = {
+      returnFromTop: false,
+      numOfChildren: 0,
+      escapedUrls: []
+    };
+    const onMessageListener = async (message, sender, sendResponse) => {
+      if (message.method !== 'getUrlResponse') return;
 
-  chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    if (message.method === 'getUrlResponse') {
-      const currentValue = exclusionInput.value.split(/\n/);
-      const escapedUrl = `^${escapeRegExp(message.url)}$`;
-      if (currentValue.includes(escapedUrl)) return;
-      exclusionInput.value = exclusionInput.value.trimEnd() + '\n' + escapedUrl;
+      urlInfo.returnFromTop ||= message.isTop;
+      urlInfo.numOfChildren += message.numOfChildren;
+      urlInfo.escapedUrls.push(`^${escapeRegExp(message.url)}$`);
+
+      if (!urlInfo.returnFromTop || urlInfo.numOfChildren + 1 != urlInfo.escapedUrls.length) return;
+
+      chrome.runtime.onMessage.removeListener(onMessageListener);
+
+      if (!urlInfo.escapedUrls.reduce((added, escapedUrl) => {
+        const currentValue = exclusionInput.value.split(/\n/);
+        if (currentValue.includes(escapedUrl)) return added || false;
+        exclusionInput.value = exclusionInput.value.trimEnd() + '\n' + escapedUrl;
+        return true;
+      }, false)) return;
+
       await renderBackground({ target: exclusionInput });
       applyButton.disabled = false;
-    }
+      exclusionInput.focus();
+    };
+    chrome.runtime.onMessage.addListener(onMessageListener);
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    await chrome.tabs.sendMessage(tabs[0].id, { method: 'getUrl' });
   });
+
   const hasCaptureGroups = (regexStr) => {
     return new Promise((resolve) => {
       if (regexStr === '') resolve(false);
@@ -105,7 +122,8 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     });
   };
 
-  const validateLines = async (textarea, lines, onlyLineCounting) => {
+  const validateLines = async (textarea, onlyLineCounting) => {
+    const lines = textarea.value.split(/\n/);
     return await lines.reduce(async (prev, curr) => {
       const numOfLine = await getLineCountForRenderedText(textarea, curr);
       const array = await prev;
@@ -138,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     if (regexpCheckbox.checked) {
       applyButton.disabled = false;
     }
-    validationResults[e.target.id] = await validateLines(e.target, lines, !regexpCheckbox.checked);
+    validationResults[e.target.id] = await validateLines(e.target, !regexpCheckbox.checked);
     applyButton.disabled = !validationResults[e.target.id].every(r => r.isValid) ||
       (
         patternInput.value === savedKeywords &&
@@ -208,7 +226,10 @@ textarea#${e.target.id} {
       regexpCheckbox.disabled =
       patternInput.disabled =
       exclusionInput.disabled = !e.target.checked;
-    applyButton.disabled = !e.target.checked || !validationResults[e.target.id].every(r => r.isValid);
+    validationResults[patternInput.id] = await validateLines(patternInput, !regexpCheckbox.checked);
+    validationResults[exclusionInput.id] = await validateLines(exclusionInput, !regexpCheckbox.checked);
+
+    applyButton.disabled = !e.target.checked || !validationResults[patternInput.id].every(r => r.isValid) || !validationResults[exclusionInput.id].every(r => r.isValid);
 
     await chrome.storage.local.set({
       "status": !e.target.checked ? 'disabled' : ''

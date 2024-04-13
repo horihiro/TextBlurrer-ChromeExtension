@@ -29,7 +29,7 @@
   white-space-collapse: preserve!important;
 }`;
 
-const send2popup = async (message) => {
+  const send2popup = async (message) => {
     chrome.runtime.sendMessage(message);
   }
 
@@ -38,6 +38,7 @@ const send2popup = async (message) => {
       await send2popup({
         method: 'getUrlResponse',
         isTop: window.top === window,
+        numOfChildren: window.frames.length,
         url: location.href
       });
     }
@@ -151,9 +152,9 @@ const send2popup = async (message) => {
         if (!from.node.parentNode
           || exElmList.includes(from.node.parentNode.nodeName.toLowerCase())
           || isBlurred(from.node.parentNode)) {
-            if (!textNode) break;
-            pos += textNode.textContent.length;
-            continue;
+          if (!textNode) break;
+          pos += textNode.textContent.length;
+          continue;
         }
 
         const computedStyle = getComputedStyle(from.node.parentNode);
