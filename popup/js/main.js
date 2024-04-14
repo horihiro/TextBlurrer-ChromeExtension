@@ -40,6 +40,15 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     if (e.key === 's' && ((e.ctrlKey && !e.metaKey) || (!e.ctrlKey && e.metaKey))) {
       e.preventDefault();
       applyButton.click();
+      return;
+    }
+    if (e.key === 'F' && e.altKey && e.shiftKey) {
+      const textarea = document.querySelector('#tab-exclusion:checked~#tab-panel-exclusion textarea')
+                    || document.querySelector('#tab-keywords:checked~#tab-panel-keywords textarea');
+      textarea.focus();
+      textarea.value = textarea.value.split(/\n/).filter(l => l.trim() !== '').join('\n');
+      e.preventDefault();
+      return;
     }
   });
 
