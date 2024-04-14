@@ -27,7 +27,7 @@ You can add URLs on the current tab to the list by clicking `+ Add URLs in the c
 
 ## Context menu for adding keyword (v0.2.0 or later)
 
-Simple way to add the blurring keyword.
+Simple way to add the blurry keyword.
 
 ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b26db8b-efa9-422d-8750-10fd71550318)
 
@@ -62,6 +62,7 @@ Refactoring blurring logic to improve performance and maintainability.
 
   - New features
     - Disable blurring on listed sites on [Exclusion URL pattern list](#exclusion-url-list-v020-or-later)
+    - Add [Context Menu for adding the blurry keywords](#context-menu-for-adding-keyword-v020-or-later)
     - Add shortcut keys on popup :
       - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change
       - <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>f</kbd>: removing empty lines in active textarea

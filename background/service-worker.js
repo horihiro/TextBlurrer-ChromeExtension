@@ -5,7 +5,7 @@ const escapeRegExp = (str) => {
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'add_keyword',
-    title: 'Add this as blurring keyword',
+    title: 'Add this as blurry keyword',
     contexts: ['selection']
   });
 });
