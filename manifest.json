@@ -15,6 +15,10 @@
     "default_icon": "img/icon128.png",
     "default_popup": "popup/main.html"
   },
+  "icons": {
+    "16": "img/icon16.png",
+    "128": "img/icon128.png"
+  },
   "content_scripts": [
     {
       "all_frames": true,

@@ -25,6 +25,18 @@ If you want NOT to blur keywords in specific sites/frames, you can specify URLs 
 
 You can add URLs on the current tab to the list by clicking `+ Add URLs in the current tab` on the popup. 
 
+## Context menu for adding keyword (v0.2.0 or later)
+
+Simple way to add the blurring keyword.
+
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b26db8b-efa9-422d-8750-10fd71550318)
+
+
+## Shortcut keys on popup (v0.2.0 or later)
+
+  - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change (i.e. pressing `Apply` button)
+  - <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>f</kbd>: removing empty lines in active textarea
+
 # Try this
 This extension can be installed from [Chrome Web Store](https://chrome.google.com/webstore/detail/text-blurrer/mbikojdgkmpjfackcmiliemgmkdkbbcl).
 
@@ -50,8 +62,9 @@ Refactoring blurring logic to improve performance and maintainability.
 
   - New features
     - Disable blurring on listed sites on [Exclusion URL pattern list](#exclusion-url-list-v020-or-later)
-    - Add shortcut key on popup :
+    - Add shortcut keys on popup :
       - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change
+      - <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>f</kbd>: removing empty lines in active textarea
   - Bug fixes
     - Improve title masking ([#38](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/38), [#39](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/39))
     - Improve unblurring on updating text node by javascript ([#40](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/40))
