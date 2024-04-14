@@ -5,8 +5,12 @@
   "version_name": "0.2.0",
   "description": "Blurring sensitive specified text/keyword.",
   "permissions": [
-    "storage"
+    "storage",
+    "contextMenus"
   ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
   "action": {
     "default_icon": "img/icon128.png",
     "default_popup": "popup/main.html"
