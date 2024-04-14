@@ -110,7 +110,7 @@
       const textNodeArray = [];
       textNodeArray.push(textNode);
 
-      while (!textNodeArray.map(t => t.textContent).join('').match(matchDetail[0])) {
+      while (!textNodeArray.map(t => t.textContent).join('').match(escapeRegExp(matchDetail[0]))) {
         textNode = getNextTextNode(textNode, target);
         if (!textNode) break;
         textNodeArray.push(textNode);
@@ -120,7 +120,7 @@
         continue
       };
 
-      while (textNodeArray.slice(1).map(t => t.textContent).join('').match(matchDetail[0])) {
+      while (textNodeArray.slice(1).map(t => t.textContent).join('').match(escapeRegExp(matchDetail[0]))) {
         textNodeArray.shift();
       }
       if (exElmList.includes(textNodeArray.at(0).parentNode.nodeName.toLowerCase()) || exElmList.includes(textNodeArray.at(-1).parentNode.nodeName.toLowerCase())) {
@@ -568,14 +568,13 @@
         });
       });
     }
+    const title = document.querySelector('title');
+    title && blurTabTitleCore(pattern, title);
     w.__titleObserver.observe(document.head, {
       childList: true,
       subtree: true,
       characterData: true
     })
-    const title = document.querySelector('title');
-    if (!title) return;
-    blurTabTitleCore(pattern, title);
   };
 
   const escapeRegExp = (str) => {
