@@ -4,7 +4,7 @@
 <head>
   <title>Text Blurrer Popup</title>
   <link rel="stylesheet" type="text/css" href="./css/main.css">
-  <script src="./js/main.js"></script>
+  <script src="./js/main.js" type="module"></script>
 </head>
 
 <body>
@@ -16,9 +16,9 @@
     <span>Enabled</span>
   </div>
 
-  <input id="tab-keywords" type="radio" role="tab" name="tab-radio" class="tab-input" value="usage" checked="">
+  <input id="tab-keywords" type="radio" role="tab" name="tab-radio" class="tab-input" value="keywords" checked="">
   <h4 class="tab-label-heading selected"><label class="tab-label" for="tab-keywords">Blurring keywords</label></h4>
-  <input id="tab-exclusion" type="radio" role="tab" name="tab-radio" class="tab-input" value="type">
+  <input id="tab-exclusion" type="radio" role="tab" name="tab-radio" class="tab-input" value="urls">
   <h4 class="tab-label-heading"><label class="tab-label" for="tab-exclusion">Exclusion URL patterns</label></h4>
 
   <div class="settings-conainer tab-panel" role="tab-panel" id="tab-panel-keywords">
