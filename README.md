@@ -54,11 +54,15 @@ If you can try a development version, the following steps are needed.
       ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/44e7f896-9e82-4af1-ae1b-f864097b44c7)
 1. select the directory created by cloning at step 1.
 
+# Dependencies
+ - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
+
 # Change logs
 
 ## [0.2.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.0)
 
-Refactoring blurring logic to improve performance and maintainability.
+Refactoring blurring logic to improve performance and maintainability.  
+From this version, this extension includes [jsdiff](https://github.com/kpdecker/jsdiff)
 
   - New features
     - Disable blurring on listed sites on [Exclusion URL pattern list](#exclusion-url-list-v020-or-later)
@@ -152,3 +156,4 @@ First release on [Chrome Web Store](https://chrome.google.com/webstore/detail/te
 ## [0.0.1-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.1)
 
 First release on GitHub
+
