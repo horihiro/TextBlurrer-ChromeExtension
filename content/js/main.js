@@ -1,4 +1,6 @@
 (async () => {
+  const src = chrome.runtime.getURL('util/common.js');
+  const { escapeRegExp } = await import(src);
   const w = window;
   const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
   const CLASS_NAME_BLURRED = 'tb-blurred';
@@ -575,10 +577,6 @@
       subtree: true,
       characterData: true
     })
-  };
-
-  const escapeRegExp = (str) => {
-    return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
   };
 
   const keywords2RegExp = (keywords, mode, matchCase) => {

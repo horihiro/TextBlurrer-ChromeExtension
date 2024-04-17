@@ -9,6 +9,7 @@
     "contextMenus"
   ],
   "background": {
+    "type": "module",
     "service_worker": "background/service-worker.js"
   },
   "action": {
@@ -27,8 +28,17 @@
         "http://*/*"
       ],
       "js": [
+        "content/js/diff.min.js",
         "content/js/main.js"
       ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "util/common.js"
+      ],
+      "matches": ["<all_urls>"]
     }
   ]
 }

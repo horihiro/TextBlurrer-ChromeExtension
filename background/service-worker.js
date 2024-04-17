@@ -1,6 +1,4 @@
-const escapeRegExp = (str) => {
-  return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
-};
+import { escapeRegExp } from '../util/common.js';
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({

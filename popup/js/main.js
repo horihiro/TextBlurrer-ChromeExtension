@@ -1,3 +1,5 @@
+import { escapeRegExp } from '../../util/common.js';
+
 document.addEventListener('DOMContentLoaded', async (e) => {
   const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle, exclusionUrls } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle', 'exclusionUrls']));
 
@@ -32,10 +34,6 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   let savedBlurTitle = false;
   const validationResults = {};
 
-  const escapeRegExp = (str) => {
-    return str.replace(/([\(\)\{\}\+\*\?\[\]\.\^\$\|\\])/g, '\\$1');
-  };
-
   window.addEventListener('keydown', (e) => {
     if (e.key === 's' && ((e.ctrlKey && !e.metaKey) || (!e.ctrlKey && e.metaKey))) {
       e.preventDefault();
@@ -50,6 +48,11 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       e.preventDefault();
       return;
     }
+  });
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.method !== 'reload') return;
+    window.location.reload();
   });
 
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
