@@ -17,7 +17,7 @@ textarea {
   border: none;
   color: #fff;
   resize: vertical;
-  max-height: 490px;
+  max-height: 420px;
   border: 1px solid rgb(170, 170, 170);
   border-radius: 3px;
 
@@ -81,7 +81,7 @@ input[type="checkbox"] {
 }
 
 .checkbox-container {
-  margin-top: -30px;
+  /* margin-top: -30px; */
 }
 
 input[type="checkbox"].custom-checkbox {
@@ -167,7 +167,6 @@ input[type="checkbox"]:checked.blur-title+span::before {
 }
 
 #applyButton {
-  margin-top: 10px;
   display: flex;
   justify-content: flex-end;
   align-self: flex-end;
@@ -185,17 +184,104 @@ input[type="checkbox"]:checked.blur-title+span::before {
 }
 
 div#linkContainer {
-  position: absolute;
   bottom: 10px;
   left: 10px;
   font-size: small;
+  width: inherit;
 }
+
 div#linkContainer a {
   color: #1191ff;
-  text-decoration:underline;
+  text-decoration: underline;
 }
 
 div#linkContainer a>img {
   filter: invert(44%) sepia(75%) saturate(3284%) hue-rotate(191deg) brightness(102%) contrast(100%);
   height: 20px;
+}
+
+textarea#exclusionInput {
+  margin-top: 7px;
+}
+
+div.footer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.tab-label-heading:not(:last-of-type) .tab-label {
+  margin-right: 2px !important;
+}
+
+input[name="tab-radio"] {
+  display: none;
+}
+
+.tab-label {
+  display: block;
+  top: 2px;
+  position: relative;
+  float: left;
+  color: #525252 !important;
+  cursor: pointer !important;
+  padding: 4px 8px 1px 8px !important;
+  border-radius: 6px 6px 0 0;
+  border-style: solid;
+  border-color: #525252 #525252 white #525252 !important;
+  border-bottom-width: 1px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+  border-right-width: 1px;
+  z-index: 0;
+  background-color: #333;
+}
+
+input:checked+h4>.tab-label {
+  color: unset !important;
+  border-color: unset !important;
+  border-bottom-width: 0px;
+  padding-bottom: 4px !important;
+  top: 0px;
+  z-index: 2;
+}
+
+.tab-panel {
+  padding: 30px 5px 5px 5px;
+  display: none;
+  z-index: -1;
+}
+
+.tab-panel::after {
+  position: absolute;
+  top: 71px;
+  bottom: 38px;
+  left: 8px;
+  right: 8px;
+  border: 1px solid white;
+  content: '';
+  z-index: 1;
+  border-radius: 0px 0px 5px 5px;
+  pointer-events: none;
+}
+
+#tab-keywords:checked~#tab-panel-keywords,
+#tab-exclusion:checked~#tab-panel-exclusion {
+  display: block;
+}
+
+div.footer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+span#addUrlsInCurrentTab {
+  color: #1191ff;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: -10px;
+  cursor: pointer;
 }

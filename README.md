@@ -18,6 +18,23 @@ https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/6f3753dd-
 ## Blur value in `input` tag (experimental, v0.1.3 or later)
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/27f2c3b1-ecf0-4a1f-88df-2f6e2b948f06
 
+## Exclusion URL list (v0.2.0 or later)
+If you want NOT to blur keywords in specific sites/frames, you can specify URLs of the site in the `Exclusion URL patterns` tab.
+
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b38cd45-66dd-4021-96a8-e67180e8cc4f)
+
+You can add URLs on the current tab to the list by clicking `+ Add URLs in the current tab` on the popup. 
+
+## Context menu for adding keyword (v0.2.0 or later)
+
+Simple way to add the blurry keyword.
+
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/a1182e7f-5462-493b-b561-618863d29fc9)
+
+## Shortcut keys on popup (v0.2.0 or later)
+
+  - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change (i.e. pressing `Apply` button)
+  - <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>f</kbd>: removing empty lines in active textarea
 
 ## Mask value in title (experimental, v0.1.9 or later)
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/25c24d50-b478-4e63-9388-20b391046fc6
@@ -40,7 +57,26 @@ If you can try a development version, the following steps are needed.
       ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/44e7f896-9e82-4af1-ae1b-f864097b44c7)
 1. select the directory created by cloning at step 1.
 
+# Dependencies
+ - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
+
 # Change logs
+
+## [0.2.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.0)
+
+Refactoring blurring logic to improve performance and maintainability.  
+From this version, this extension includes [jsdiff](https://github.com/kpdecker/jsdiff)
+
+  - New features
+    - Disable blurring on listed sites on [Exclusion URL pattern list](#exclusion-url-list-v020-or-later)
+    - Add [Context Menu for adding the blurry keywords](#context-menu-for-adding-keyword-v020-or-later)
+    - Add shortcut keys on popup :
+      - <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>s</kbd>: applying keywords/url patterns change
+      - <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>f</kbd>: removing empty lines in active textarea
+  - Bug fixes
+    - Improve title masking ([#38](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/38), [#39](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/39))
+    - Improve unblurring on updating text node by javascript ([#40](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/40))
+    - Improve inputting keywords using RegExp assersions ([#41](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/31))
 
 ## [0.1.9](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.1.9)
 
@@ -123,3 +159,4 @@ First release on [Chrome Web Store](https://chrome.google.com/webstore/detail/te
 ## [0.0.1-alpha](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.0.1)
 
 First release on GitHub
+

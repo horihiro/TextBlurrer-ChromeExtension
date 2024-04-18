@@ -1,35 +1,20 @@
-// console.log('Start service-worker.js');
+import { escapeRegExp } from '../util/common.js';
 
-// chrome.runtime.onConnect.addListener((port) => {
-//   if (port.name !== 'updateKeywords') return;
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'add_keyword',
+    title: 'Add this as blurry keyword',
+    contexts: ['selection']
+  });
+});
 
-//   chrome.storage.onChanged.addListener(async (changes, area) => {
-//     if (area !== 'local' || !changes.keywords && !changes.status) return;
-
-//     try {
-//       port.postMessage({
-//         keywords: changes.keywords?.newValue || undefined,
-//         status: changes.status?.newValue || undefined
-//       });
-//     } catch (e) {
-//       console.error(e);
-//     }
-//   });
-// });
-
-// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-//   if (!sender.tab || request.request !== "getKeywordsToBeBlurred") return;
-
-//   chrome.storage.local.get(["keywords"], (k) => {
-//     chrome.storage.local.get(["status"], (s) => {
-//       sendResponse({ keywords: k.keywords, status: s.status });
-//     });
-//   });
-//   return true;
-// });
-
-// // Workaround for keeping service worker active 
-// // `Bug exploit` in https://stackoverflow.com/questions/66618136/persistent-service-worker-in-chrome-extension#answer-66618269
-// const keepAlive = () => setInterval(chrome.runtime.getPlatformInfo, 20e3);
-// chrome.runtime.onStartup.addListener(keepAlive);
-// keepAlive();
+chrome.contextMenus.onClicked.addListener(async(info, tab) => {
+  if (info.menuItemId === 'add_keyword') {
+    const keywords = (await chrome.storage.local.get(['keywords'])).keywords?.split(/\n/) || [];
+    (keywords.length === 1 && keywords[0] === '') && keywords.pop();
+    const addingKeyword = (await chrome.storage.local.get(['mode']))?.mode === 'regexp' ? escapeRegExp(info.selectionText) : info.selectionText;
+    !keywords.includes(addingKeyword) && keywords.push(addingKeyword);
+    await chrome.storage.local.set({ 'keywords': keywords.join('\n') });
+    chrome.runtime.sendMessage({ method: 'reload' });
+  }
+});
