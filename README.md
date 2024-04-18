@@ -29,8 +29,7 @@ You can add URLs on the current tab to the list by clicking `+ Add URLs in the c
 
 Simple way to add the blurry keyword.
 
-![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/7b26db8b-efa9-422d-8750-10fd71550318)
-
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/a1182e7f-5462-493b-b561-618863d29fc9)
 
 ## Shortcut keys on popup (v0.2.0 or later)
 
