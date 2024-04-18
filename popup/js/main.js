@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
   });
 
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
+    if (!statusCheckbox.checked) return;
     const urlInfo = {
       returnFromTop: false,
       numOfChildren: 0,
