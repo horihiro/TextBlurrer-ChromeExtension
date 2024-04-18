@@ -459,6 +459,11 @@
     observedNodes.push(observed);
     if (!w.__observer) {
       w.__observer = new MutationObserver((records) => {
+        if (!records.some(record => {
+          return record.removedNodes.length > 0 || Array.from(record.addedNodes).some(node => {
+            return !['SCRIPT', 'STYLE', '#comment'].includes(node.nodeName);
+          });
+        })) return;
         const targets = records.reduce((targets, record) => {
           const isContained = targets.some((target) => {
             return target.contains(record.target);
