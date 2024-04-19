@@ -52,11 +52,11 @@
   };
   const inputs = [];
 
+  const SKIP_NODE_NAMES = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'META', 'LINK', 'HTML', '#comment'];
   const getNextTextNode = (e, root) => {
     if (!e) return null;
-    if (e.firstChild) return e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, root);
+    if (e.firstChild && !SKIP_NODE_NAMES.includes(e.nodeName)) return e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, root);
     if (e.nextSibling) return e.nextSibling.nodeName === '#text' ? e.nextSibling : getNextTextNode(e.nextSibling, root);
-
     let parent = e.parentNode;
     while (parent != root && parent) {
       if (parent.nextSibling) return parent.nextSibling.nodeName === '#text' ? parent.nextSibling : getNextTextNode(parent.nextSibling, root);
@@ -91,9 +91,8 @@
   const BLOCK_ELEMENT_NAMES = ['ADDRESS', 'BLOCKQUOTE', 'DIV', 'DL', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'NOSCRIPT', 'SCRIPT', 'PL', 'P', 'PRE', 'TABLE', 'UL'];
   const blockContents = (node) => {
     return Array.from(node.childNodes).reduce((lines, child) => {
-      if (child.nodeType == 8) {
-        return lines;
-      } if (child.nodeType >= 3) {
+      if (SKIP_NODE_NAMES.includes(child.nodeName)) return lines;
+      if (child.nodeType >= 3) {
         lines[lines.length - 1] += child.textContent;
       } else {
         const childText = blockContents(child);
