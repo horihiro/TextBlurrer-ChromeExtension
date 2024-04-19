@@ -1,0 +1,19 @@
+name: automatic release
+on:
+  release:
+    types: [published, prereleased]
+permissions:
+  contents: write
+jobs:
+  release:
+    name: check version, add tag and release
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: zip release
+        run: zip -r release.zip background content img popup util CREDITS.txt LICENSE manifest.json NOTICE.md README.md
+      - name: Upload release attachment
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release.zip
