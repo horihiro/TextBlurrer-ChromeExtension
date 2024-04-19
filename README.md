@@ -62,6 +62,11 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.2.1](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.1)
+
+  - Bug fixes
+    - Improve performance ([#48](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/48)
+
 ## [0.2.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.0)
 
 Refactoring blurring logic to improve performance and maintainability.  
