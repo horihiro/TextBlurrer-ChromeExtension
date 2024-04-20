@@ -622,7 +622,7 @@
             if (node.nodeName === 'TITLE') {
               blurTabTitleCore(pattern, node);
               return true;
-            } else if (node.nodeName === "#text" && node.parentNode.nodeName === "TITLE") {
+            } else if (node.nodeName === "#text" && node.parentNode && node.parentNode.nodeName === "TITLE") {
               blurTabTitleCore(pattern, node.parentNode);
               return true;
             }
