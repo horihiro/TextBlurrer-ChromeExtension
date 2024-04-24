@@ -88,7 +88,11 @@
       : ''
   }
 
-  const BLOCK_ELEMENT_NAMES = ['ADDRESS', 'BLOCKQUOTE', 'DIV', 'DL', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'NOSCRIPT', 'SCRIPT', 'PL', 'P', 'PRE', 'TABLE', 'UL'];
+  const BLOCK_ELEMENT_NAMES = [
+    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
+    'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
+    'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
+  ];
   const blockContents = (node) => {
     return Array.from(node.childNodes).reduce((lines, child) => {
       if (SKIP_NODE_NAMES.includes(child.nodeName)) return lines;
