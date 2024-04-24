@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     }
     if (e.key === 'F' && e.altKey && e.shiftKey) {
       const textarea = document.querySelector('#tab-exclusion:checked~#tab-panel-exclusion textarea')
-                    || document.querySelector('#tab-keywords:checked~#tab-panel-keywords textarea');
+        || document.querySelector('#tab-keywords:checked~#tab-panel-keywords textarea');
       textarea.focus();
       textarea.value = textarea.value.split(/\n/).filter(l => l.trim() !== '').join('\n');
       e.preventDefault();
@@ -55,36 +55,23 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     window.location.reload();
   });
 
+  const onMessageListener = async (message, sender, sendResponse) => {
+    if (message.method !== 'getUrlResponse') return;
+
+    const escapedUrl = escapeRegExp(message.url);
+    const currentValue = exclusionInput.value.split(/\n/);
+    if (currentValue.includes(escapedUrl) || currentValue.filter(l => !!l).some(v => new RegExp(v).test(message.url))) return;
+
+    exclusionInput.value = `${exclusionInput.value.trimEnd()}
+^${escapedUrl}$`;
+    await renderBackground({ target: exclusionInput });
+    applyButton.disabled = false;
+    exclusionInput.focus();
+  };
+  chrome.runtime.onMessage.addListener(onMessageListener);
+
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
     if (!statusCheckbox.checked) return;
-    const urlInfo = {
-      returnFromTop: false,
-      numOfChildren: 0,
-      escapedUrls: []
-    };
-    const onMessageListener = async (message, sender, sendResponse) => {
-      if (message.method !== 'getUrlResponse') return;
-
-      urlInfo.returnFromTop ||= message.isTop;
-      urlInfo.numOfChildren += message.numOfChildren;
-      urlInfo.escapedUrls.push(`^${escapeRegExp(message.url)}$`);
-
-      if (!urlInfo.returnFromTop || urlInfo.numOfChildren + 1 != urlInfo.escapedUrls.length) return;
-
-      chrome.runtime.onMessage.removeListener(onMessageListener);
-
-      if (!urlInfo.escapedUrls.reduce((added, escapedUrl) => {
-        const currentValue = exclusionInput.value.split(/\n/);
-        if (currentValue.includes(escapedUrl)) return added || false;
-        exclusionInput.value = exclusionInput.value.trimEnd() + '\n' + escapedUrl;
-        return true;
-      }, false)) return;
-
-      await renderBackground({ target: exclusionInput });
-      applyButton.disabled = false;
-      exclusionInput.focus();
-    };
-    chrome.runtime.onMessage.addListener(onMessageListener);
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     await chrome.tabs.sendMessage(tabs[0].id, { method: 'getUrl' });
   });

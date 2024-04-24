@@ -40,7 +40,7 @@
       await send2popup({
         method: 'getUrlResponse',
         isTop: window.top === window,
-        numOfChildren: window.frames.length,
+        numOfChildren: Array.from(document.querySelectorAll('iframe,frame')).filter(f => /^https?:\/\//.test(f.src)).length,
         url: location.href
       });
     }
