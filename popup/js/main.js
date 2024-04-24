@@ -235,6 +235,7 @@ textarea#${e.target.id} {
       exclusionInput.disabled = !e.target.checked;
     validationResults[patternInput.id] = await validateLines(patternInput, !regexpCheckbox.checked);
     validationResults[exclusionInput.id] = await validateLines(exclusionInput, !regexpCheckbox.checked);
+    addUrlsInCurrentTab.style.cursor = e.target.checked ? '' : 'auto';
 
     applyButton.disabled = !e.target.checked || !validationResults[patternInput.id].every(r => r.isValid) || !validationResults[exclusionInput.id].every(r => r.isValid);
 
@@ -334,6 +335,7 @@ textarea#${e.target.id} {
     patternInput.disabled =
     exclusionInput.disabled =
     applyButton.disabled = !statusCheckbox.checked;
+  addUrlsInCurrentTab.style.cursor = statusCheckbox.checked ? '' : 'auto';
 
   patternInput.focus();
   if (statusCheckbox.checked) {
