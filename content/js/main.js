@@ -40,7 +40,7 @@
       await send2popup({
         method: 'getUrlResponse',
         isTop: window.top === window,
-        numOfChildren: window.frames.length,
+        numOfChildren: Array.from(document.querySelectorAll('iframe,frame')).filter(f => /^https?:\/\//.test(f.src)).length,
         url: location.href
       });
     }
@@ -88,7 +88,11 @@
       : ''
   }
 
-  const BLOCK_ELEMENT_NAMES = ['ADDRESS', 'BLOCKQUOTE', 'DIV', 'DL', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'NOSCRIPT', 'SCRIPT', 'PL', 'P', 'PRE', 'TABLE', 'UL'];
+  const BLOCK_ELEMENT_NAMES = [
+    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
+    'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
+    'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
+  ];
   const blockContents = (node) => {
     return Array.from(node.childNodes).reduce((lines, child) => {
       if (SKIP_NODE_NAMES.includes(child.nodeName)) return lines;
@@ -622,7 +626,7 @@
             if (node.nodeName === 'TITLE') {
               blurTabTitleCore(pattern, node);
               return true;
-            } else if (node.nodeName === "#text" && node.parentNode.nodeName === "TITLE") {
+            } else if (node.nodeName === "#text" && node.parentNode && node.parentNode.nodeName === "TITLE") {
               blurTabTitleCore(pattern, node.parentNode);
               return true;
             }

@@ -62,6 +62,12 @@ If you can try a development version, the following steps are needed.
 
 # Change logs
 
+## [0.2.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.2)
+
+  - Bug fixes
+    - Improve performance ([#52](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/52)
+    - Fix adding exclusion URL patterns list
+
 ## [0.2.1](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.1)
 
   - Bug fixes
