@@ -58,9 +58,15 @@ If you can try a development version, the following steps are needed.
 1. select the directory created by cloning at step 1.
 
 # Dependencies
- - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
+  - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
 
 # Change logs
+
+## [0.2.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.3)
+
+  - Bug fixes
+    - Fix tab title masking ([#56](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/56)
+    - Fix white-space handling ([#57](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/57)
 
 ## [0.2.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.2)
 
