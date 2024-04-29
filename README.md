@@ -65,19 +65,19 @@ If you can try a development version, the following steps are needed.
 ## [0.2.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.3)
 
   - Bug fixes
-    - Fix tab title masking ([#56](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/56)
-    - Fix white-space handling ([#57](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/57)
+    - Fix tab title masking ([#56](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/56))
+    - Fix white-space handling ([#57](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/57))
 
 ## [0.2.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.2)
 
   - Bug fixes
-    - Improve performance ([#52](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/52)
+    - Improve performance ([#52](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/52))
     - Fix adding exclusion URL patterns list
 
 ## [0.2.1](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.1)
 
   - Bug fixes
-    - Improve performance ([#48](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/48)
+    - Improve performance ([#48](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/48))
 
 ## [0.2.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.0)
 
