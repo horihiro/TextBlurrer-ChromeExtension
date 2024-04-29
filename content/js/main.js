@@ -608,10 +608,12 @@
   const blurTabTitleCore = (pattern, target) => {
     const title = target.textContent;
     let result = title.match(pattern);
+    let start = 0;
     while (result) {
       const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
-      result = target.textContent.match(pattern);
+      start += result.index + mask.length;
+      result = target.textContent.slice(start).match(pattern);
       if (!target.getAttribute(ATTR_NAME_ORIGINAL_TITLE)) {
         target.setAttribute(ATTR_NAME_ORIGINAL_TITLE, title);
       }
