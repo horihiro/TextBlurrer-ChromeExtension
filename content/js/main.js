@@ -85,6 +85,7 @@
       .replace(/[\n\t]/g, ' ')  // step.2&3
       .replace(/ +/g, ' ')      // step.4
       .trim()                   // step.5
+      .replace(/\u00a0/g, ' ')  // additional
       : ''
   }
 
