@@ -10,7 +10,7 @@ Xterm.js has some types of renderer as followings.
   - Canvas
   - DOM
 
-From point of view of performance, WebGL renderer is most recommended.
+From point of view of the rendering performance, WebGL renderer is most recommended.
 But Text Blurrer cannot blur text rendered by WebGL renderer and Canvas renderer because they draw text on HTML Canvas.
 
 If you want to blur text on Xterm.js-base terminal, you should check which type of renderer is used to render text on the terminal and if the application using Xterm.js has a option to switch the renderer type of Xterm.js
