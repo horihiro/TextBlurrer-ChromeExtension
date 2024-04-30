@@ -49,7 +49,7 @@
 
   const isInCodeMirror = (element) => {
     return element.nodeType == 1
-      ? element.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`) ? 'true' : 'false'
+      ? element.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`) ? true : false
       : isInCodeMirror(element.parentNode); 
   };
   const inputs = [];
