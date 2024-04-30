@@ -19,10 +19,11 @@ If you want to blur text on Xterm.js-base terminal, you should check which type 
 > Switching to DOM renderer for Xterm.js might cause performance issue of the terminal rendering.
 
 ## GitHub Codespaces
-The terminal on GitHub Codespaces is based on Xterm.js and the default renderer is WebGL renderer.
+The terminal on GitHub Codespaces is based on Xterm.js.
 
-But it has a option about the terminal rendering.  
+Though the default renderer is WebGL renderer, it has a option about the terminal rendering.  
 By setting `terminal.integrated.gpuAcceleration` to `off`, DOM renderer can be enabled and text on the terminal can be blurred.
+![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/3165d94c-38ac-48e9-b4db-6bad845f153b)
 
 ## Azure Cloud Shell
-It seem that there is no option to switch rendering option.
+It seem that there is no option to switch rendering option, so it's difficult to blur text on Azure Cloud Shell currently.
