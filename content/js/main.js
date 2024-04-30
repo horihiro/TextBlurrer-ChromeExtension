@@ -2,7 +2,15 @@
   const src = chrome.runtime.getURL('util/common.js');
   const { escapeRegExp } = await import(src);
   const w = window;
-  const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
+  const inputs = [];
+  const observedNodes = [];
+
+  const SKIP_NODE_NAMES = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'META', 'LINK', 'HTML', 'TEXTAREA', 'TITLE', '#comment'];
+  const BLOCK_ELEMENT_NAMES = [
+    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
+    'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
+    'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
+  ];
   const CLASS_NAME_BLURRED = 'tb-blurred';
   const CLASS_PREFIX_BLURRED_GROUP = 'tb-blurred-group-';
   const CLASS_NAME_KEEP = 'tb-keep-this';
@@ -47,14 +55,24 @@
     }
   });
 
-  const isInCodeMirror = (element) => {
-    return element.nodeType == 1
-      ? element.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`) ? true : false
-      : isInCodeMirror(element.parentNode); 
-  };
-  const inputs = [];
+  const shouldBeSkipped = (node) => {
+    if (node.nodeType !== 1) return shouldBeSkipped(node.parentNode);
 
-  const SKIP_NODE_NAMES = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'META', 'LINK', 'HTML', '#comment'];
+    if (!!node.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`)) {
+      console.debug(`Skipped. Reason: CodeMirror`);
+      return true;
+    }
+    if (isBlurred(node)) {
+      console.debug(`Skipped. Reason: Already blurred`);
+      return true;
+    }
+    if (SKIP_NODE_NAMES.includes(node.nodeName)) {
+      console.debug(`Skipped. Reason: nodeName is ${node.nodeName}`);
+      return true;
+    }
+    return false;
+  }
+
   const getNextTextNode = (e, root) => {
     if (!e) return null;
     if (e.firstChild && !SKIP_NODE_NAMES.includes(e.nodeName)) return e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, root);
@@ -91,11 +109,6 @@
       : ''
   }
 
-  const BLOCK_ELEMENT_NAMES = [
-    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
-    'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
-    'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
-  ];
   const blockContents = (node) => {
     return Array.from(node.childNodes).reduce((lines, child) => {
       if (SKIP_NODE_NAMES.includes(child.nodeName)) return lines;
@@ -133,7 +146,7 @@
     return !!(node.nodeType == 1 ? node : node.parentNode).closest(`.${CLASS_NAME_BLURRED}`)
   }
 
-  const getElementsToBeBlurred = (pattern, target, options) => {
+  const blockAndBlur = (pattern, target, options) => {
     let textNode = getNextTextNode(target, target), pos = 0;
     if (!textNode) return;
     let _startsFrom = 0;
@@ -211,12 +224,7 @@
         const insertNodes = [];
         const removeNodes = [];
         if (!from.node.parentNode || !to.node.parentNode
-          || exElmList.includes(from.node.parentNode.nodeName.toLowerCase()) || exElmList.includes(from.node.parentNode.nodeName.toLowerCase())
-          || isBlurred(from.node.parentNode) || isBlurred(to.node.parentNode) ) return;
-        if (isInCodeMirror(from.node.parentNode) || isInCodeMirror(to.node.parentNode)) {
-          console.warn('CodeMirror is not supported');
-          return;
-        }
+          || shouldBeSkipped(from.node) || shouldBeSkipped(to.node)) return;
 
         if (from.node == to.node) {
           const computedStyle = getComputedStyle(from.node.parentNode);
@@ -302,7 +310,7 @@
         });
       }
     }
-    getElementsToBeBlurred(pattern, target || document.body, options);
+    blockAndBlur(pattern, target || document.body, options);
 
     const blurInShadowRoot = (target) => {
       target.shadowRoot && blur(pattern, options, target.shadowRoot);
@@ -453,7 +461,6 @@
       inputObj.masks[p].forEach(m => m.style.setProperty('display', ''));
     }
   }
-  const observedNodes = [];
   const blur = (pattern, options, target) => {
     const observed = target || document.body;
     if (observedNodes.includes(observed)) return;
