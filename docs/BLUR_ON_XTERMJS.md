@@ -29,7 +29,8 @@ Though the default renderer is WebGL renderer, it has a option about the termina
 By setting `terminal.integrated.gpuAcceleration` to `off`, DOM renderer can be enabled and text on the terminal can be blurred.
 ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/3165d94c-38ac-48e9-b4db-6bad845f153b)
 
-Example: realtime blurring output of `az account show` and `az sp create-for-rbac`  
+Example: realtime blurring output of `az account show` and `az sp create-for-rbac`
+
 https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/06264b16-cca3-4350-9680-25c556ced988
 
 ## Azure Cloud Shell
