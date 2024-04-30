@@ -9,6 +9,7 @@
   const ATTR_NAME_ORIGINAL_TITLE = 'data-tb-original-title';
   const CLASS_NAME_MASK_CONTAINER = 'tb-mask-container';
   const CLASS_NAME_TEXT_LAYER = 'tb-mask-text-layer';
+  const CLASS_NAME_CODEMIRROR_EDITOR = 'cm-editor';
   const ID_INPUT_CLONE = 'tb-input-clone';
   const ID_GLOBAL_STYLE = '__blurring-style';
   const GLOBAL_STYLE = `.${CLASS_NAME_BLURRED} {
@@ -46,9 +47,10 @@
     }
   });
 
-  const getStateOfContentEditable = (element) => {
-    if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
-    return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
+  const isInCodeMirror = (element) => {
+    return element.nodeType == 1
+      ? element.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`) ? 'true' : 'false'
+      : isInCodeMirror(element.parentNode); 
   };
   const inputs = [];
 
@@ -128,11 +130,7 @@
   }
 
   const isBlurred = (node) => {
-    do {
-      if (node.classList?.contains(CLASS_NAME_BLURRED)) return true;
-      node = node.parentNode;
-    } while (node);
-    return false;
+    return !!(node.nodeType == 1 ? node : node.parentNode).closest(`.${CLASS_NAME_BLURRED}`)
   }
 
   const getElementsToBeBlurred = (pattern, target, options) => {
@@ -214,7 +212,11 @@
         const removeNodes = [];
         if (!from.node.parentNode || !to.node.parentNode
           || exElmList.includes(from.node.parentNode.nodeName.toLowerCase()) || exElmList.includes(from.node.parentNode.nodeName.toLowerCase())
-          || isBlurred(from.node.parentNode) || isBlurred(to.node.parentNode)) return;
+          || isBlurred(from.node.parentNode) || isBlurred(to.node.parentNode) ) return;
+        if (isInCodeMirror(from.node.parentNode) || isInCodeMirror(to.node.parentNode)) {
+          console.warn('CodeMirror is not supported');
+          return;
+        }
 
         if (from.node == to.node) {
           const computedStyle = getComputedStyle(from.node.parentNode);
