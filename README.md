@@ -61,8 +61,9 @@ If you can try a development version, the following steps are needed.
   - These are **experimental** features
     - Input Element blurring
     - Tab title masking
-  - HTML Canvas:  
-    This extension cannot blur text drown on HTML Canvas
+  - The following HTML elements are not supported:
+    - HTML Canvas
+    - Inside of `contentEditable` element  
   - Web Terminal based on Xterm.js:  
     see [here](./docs/BLUR_ON_XTERMJS.md)
   - Web Editor based on CodeMirror:  

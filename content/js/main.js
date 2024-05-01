@@ -58,16 +58,20 @@
   const shouldBeSkipped = (node) => {
     if (node.nodeType !== 1) return shouldBeSkipped(node.parentNode);
 
-    if (!!node.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`)) {
-      console.debug(`Skipped. Reason: CodeMirror`);
-      return true;
-    }
     if (isBlurred(node)) {
       console.debug(`Skipped. Reason: Already blurred`);
       return true;
     }
     if (SKIP_NODE_NAMES.includes(node.nodeName)) {
-      console.debug(`Skipped. Reason: nodeName is ${node.nodeName}`);
+      console.debug(`Skipped. Reason: The nodeName is ${node.nodeName}`);
+      return true;
+    }
+    if (!!node.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`)) {
+      console.debug(`Skipped. Reason: CodeMirror`);
+      return true;
+    }
+    if (node.isContentEditable) {
+      console.debug(`Skipped. Reason: The node is contentEditable`);
       return true;
     }
     return false;
