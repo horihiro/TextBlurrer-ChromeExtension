@@ -57,21 +57,42 @@ If you can try a development version, the following steps are needed.
       ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/44e7f896-9e82-4af1-ae1b-f864097b44c7)
 1. select the directory created by cloning at step 1.
 
+# Limitations
+  - These are **experimental** features
+    - Input Element blurring
+    - Tab title masking
+  - The following HTML elements are not supported:
+    - HTML Canvas
+    - Inside of `contentEditable` element  
+  - Web Terminal based on Xterm.js:  
+    see [here](./docs/BLUR_ON_XTERMJS.md)
+  - Web Editor based on CodeMirror:  
+    CodeMirror, which bases GitHub code editor, repairs its own contents automatically after blurring by this extension. Then blurring and repairing are repeated, it causes infinity loop. ([#62](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/62))
+
 # Dependencies
- - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
+  - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
 
 # Change logs
+
+## [0.2.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.3)
+
+  - Bug fixes
+    - Fix tab title masking ([#56](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/56))
+    - Fix white-space handling ([#57](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/57))
+    - Fix hanging up on sites contain CodeMirror ([#62](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/62))
+  - Chores
+    - Add documentation about blurring on Xterm.js
 
 ## [0.2.2](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.2)
 
   - Bug fixes
-    - Improve performance ([#52](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/52)
+    - Improve performance ([#52](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/52))
     - Fix adding exclusion URL patterns list
 
 ## [0.2.1](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.1)
 
   - Bug fixes
-    - Improve performance ([#48](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/48)
+    - Improve performance ([#48](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/48))
 
 ## [0.2.0](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.0)
 

@@ -206,7 +206,7 @@ textarea#${e.target.id} {
   applyButton.addEventListener('click', async (e) => {
     await chrome.storage.local.set({
       'status': !statusCheckbox.checked ? 'disabled' : '',
-      'keywords': patternInput.value,
+      'keywords': patternInput.value.replace(/\u00a0/g, ' '),
       'exclusionUrls': exclusionInput.value,
       'mode': regexpCheckbox.checked ? 'regexp' : 'text',
       'matchCase': caseCheckbox.checked,

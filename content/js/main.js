@@ -2,13 +2,22 @@
   const src = chrome.runtime.getURL('util/common.js');
   const { escapeRegExp } = await import(src);
   const w = window;
-  const exElmList = ['html', 'title', 'script', 'noscript', 'style', 'meta', 'link', 'head', 'textarea', '#comment'];
+  const inputs = [];
+  const observedNodes = [];
+
+  const SKIP_NODE_NAMES = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'META', 'LINK', 'HTML', 'TEXTAREA', 'TITLE', '#comment'];
+  const BLOCK_ELEMENT_NAMES = [
+    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
+    'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
+    'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
+  ];
   const CLASS_NAME_BLURRED = 'tb-blurred';
   const CLASS_PREFIX_BLURRED_GROUP = 'tb-blurred-group-';
   const CLASS_NAME_KEEP = 'tb-keep-this';
   const ATTR_NAME_ORIGINAL_TITLE = 'data-tb-original-title';
   const CLASS_NAME_MASK_CONTAINER = 'tb-mask-container';
   const CLASS_NAME_TEXT_LAYER = 'tb-mask-text-layer';
+  const CLASS_NAME_CODEMIRROR_EDITOR = 'cm-editor';
   const ID_INPUT_CLONE = 'tb-input-clone';
   const ID_GLOBAL_STYLE = '__blurring-style';
   const GLOBAL_STYLE = `.${CLASS_NAME_BLURRED} {
@@ -46,13 +55,28 @@
     }
   });
 
-  const getStateOfContentEditable = (element) => {
-    if (element.contentEditable && element.contentEditable !== 'inherit') return element.contentEditable;
-    return element.parentNode ? getStateOfContentEditable(element.parentNode) : '';
-  };
-  const inputs = [];
+  const shouldBeSkipped = (node) => {
+    if (node.nodeType !== 1) return shouldBeSkipped(node.parentNode);
 
-  const SKIP_NODE_NAMES = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'META', 'LINK', 'HTML', '#comment'];
+    if (isBlurred(node)) {
+      console.debug(`Skipped. Reason: Already blurred`);
+      return true;
+    }
+    if (SKIP_NODE_NAMES.includes(node.nodeName)) {
+      console.debug(`Skipped. Reason: The nodeName is ${node.nodeName}`);
+      return true;
+    }
+    if (!!node.closest(`.${CLASS_NAME_CODEMIRROR_EDITOR}`)) {
+      console.debug(`Skipped. Reason: CodeMirror`);
+      return true;
+    }
+    if (node.isContentEditable) {
+      console.debug(`Skipped. Reason: The node is contentEditable`);
+      return true;
+    }
+    return false;
+  }
+
   const getNextTextNode = (e, root) => {
     if (!e) return null;
     if (e.firstChild && !SKIP_NODE_NAMES.includes(e.nodeName)) return e.firstChild.nodeName === '#text' ? e.firstChild : getNextTextNode(e.firstChild, root);
@@ -85,14 +109,10 @@
       .replace(/[\n\t]/g, ' ')  // step.2&3
       .replace(/ +/g, ' ')      // step.4
       .trim()                   // step.5
+      .replace(/\u00a0/g, ' ')  // additional
       : ''
   }
 
-  const BLOCK_ELEMENT_NAMES = [
-    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
-    'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
-    'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
-  ];
   const blockContents = (node) => {
     return Array.from(node.childNodes).reduce((lines, child) => {
       if (SKIP_NODE_NAMES.includes(child.nodeName)) return lines;
@@ -127,14 +147,10 @@
   }
 
   const isBlurred = (node) => {
-    do {
-      if (node.classList?.contains(CLASS_NAME_BLURRED)) return true;
-      node = node.parentNode;
-    } while (node);
-    return false;
+    return !!(node.nodeType == 1 ? node : node.parentNode).closest(`.${CLASS_NAME_BLURRED}`)
   }
 
-  const getElementsToBeBlurred = (pattern, target, options) => {
+  const blockAndBlur = (pattern, target, options) => {
     let textNode = getNextTextNode(target, target), pos = 0;
     if (!textNode) return;
     let _startsFrom = 0;
@@ -212,8 +228,7 @@
         const insertNodes = [];
         const removeNodes = [];
         if (!from.node.parentNode || !to.node.parentNode
-          || exElmList.includes(from.node.parentNode.nodeName.toLowerCase()) || exElmList.includes(from.node.parentNode.nodeName.toLowerCase())
-          || isBlurred(from.node.parentNode) || isBlurred(to.node.parentNode)) return;
+          || shouldBeSkipped(from.node) || shouldBeSkipped(to.node)) return;
 
         if (from.node == to.node) {
           const computedStyle = getComputedStyle(from.node.parentNode);
@@ -299,7 +314,7 @@
         });
       }
     }
-    getElementsToBeBlurred(pattern, target || document.body, options);
+    blockAndBlur(pattern, target || document.body, options);
 
     const blurInShadowRoot = (target) => {
       target.shadowRoot && blur(pattern, options, target.shadowRoot);
@@ -450,7 +465,6 @@
       inputObj.masks[p].forEach(m => m.style.setProperty('display', ''));
     }
   }
-  const observedNodes = [];
   const blur = (pattern, options, target) => {
     const observed = target || document.body;
     if (observedNodes.includes(observed)) return;
@@ -608,10 +622,12 @@
   const blurTabTitleCore = (pattern, target) => {
     const title = target.textContent;
     let result = title.match(pattern);
+    let start = 0;
     while (result) {
       const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
-      result = target.textContent.match(pattern);
+      start += result.index + mask.length;
+      result = target.textContent.slice(start).match(pattern);
       if (!target.getAttribute(ATTR_NAME_ORIGINAL_TITLE)) {
         target.setAttribute(ATTR_NAME_ORIGINAL_TITLE, title);
       }
