@@ -611,23 +611,27 @@
           continue;
         }
         textContainer.textContent += c.textContent;
-        if (currentRange && currentRange.endContainer == textContainer) {
-          setCuretPosition(currentRange);
-        } else if (currentRange && currentRange.endContainer == c) {
-          currentRange.endContainer = currentRange.startContainer = textContainer;
-          currentRange.startOffset += (textContainer.textContent.length - c.textContent.length);
-          currentRange.endOffset += (textContainer.textContent.length - c.textContent.length);
-          setCuretPosition(currentRange);
+        if (currentRange) {
+          switch (currentRange.endContainer) {
+            case c:
+              currentRange.endContainer = currentRange.startContainer = textContainer;
+              currentRange.startOffset += (textContainer.textContent.length - c.textContent.length);
+              currentRange.endOffset += (textContainer.textContent.length - c.textContent.length);
+            case textContainer:
+              setCuretPosition(currentRange);
+          }
         }
 
         if (n.nextSibling?.nodeName === '#text') {
           n.previousSibling.textContent += n.nextSibling.textContent;
-          if (currentRange && currentRange.endContainer == n.nextSibling) {
-            currentRange.endContainer = currentRange.startContainer = n.previousSibling;
-            currentRange.endOffset = currentRange.startOffset = n.previousSibling.textContent.length - n.nextSibling.textContent.length + currentRange.startOffset;
-            setCuretPosition(currentRange);
-          } else if (currentRange && currentRange.endContainer == n.previousSibling) {
-            setCuretPosition(currentRange);
+          if (currentRange) {
+            switch (currentRange.endContainer) {
+              case n.nextSibling:
+                currentRange.endContainer = currentRange.startContainer = n.previousSibling;
+                currentRange.endOffset = currentRange.startOffset = n.previousSibling.textContent.length - n.nextSibling.textContent.length + currentRange.startOffset;
+              case n.previousSibling:
+                setCuretPosition(currentRange);
+            }
           }
           p.removeChild(n.nextSibling);
         }
