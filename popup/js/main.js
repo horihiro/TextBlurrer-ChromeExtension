@@ -148,6 +148,9 @@ document.addEventListener('DOMContentLoaded', async (e) => {
         result.reason = 'Error:\n  This string might contain capture-group that should be non-capture-group.\n  Replace a pair of `(` and `)` to `(?:` and `)`.';
       } else if (/^(?:\.|(?:\\[^\\])|(?:\[[^\]]+\]))(?:\?|\*|\+|\{,?1\}|\{1,(?:\d+)?\})?$/.test(curr)) {
         result.reason = 'Warning:\n  One character matching might cause performance issue.';
+      } else if (curr !== '' && new RegExp(curr).test('')) {
+        result.isValid = false;
+        result.reason = 'Error:\n  This pattern matches an empty string.';
       }
       array.push(result);
       return array;

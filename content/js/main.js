@@ -662,7 +662,15 @@
 
   const keywords2RegExp = (keywords, mode, matchCase) => {
     return new RegExp(
-      (keywords || '').split(/\n/).filter(k => !!k.trim()).map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`).join('|'),
+      (keywords || '').split(/\n/)
+        .filter(k => 
+          !!k.trim() && (
+            mode !== 'regexp' ||
+            !new RegExp(k).test('')
+          )
+        )
+        .map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`)
+        .join('|'),
       matchCase ? '' : 'i'
     );
   };
