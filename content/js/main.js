@@ -233,7 +233,7 @@
         if (from.node == to.node) {
           const computedStyle = getComputedStyle(from.node.parentNode);
           const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
-          if (from.node.textContent === match.keyword && computedStyle.filter === 'none') {
+          if (from.node.textContent === match.keyword && from.node.parentNode.childNodes.length == 1 && computedStyle.filter === 'none') {
             from.node.parentNode.classList.add(CLASS_NAME_BLURRED);
             from.node.parentNode.classList.add(CLASS_NAME_KEEP);
             if (options?.showValue) {
