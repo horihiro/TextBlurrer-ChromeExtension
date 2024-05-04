@@ -81,6 +81,7 @@ If you can try a development version, the following steps are needed.
 ## [0.2.4](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.4)
 
   - Bug fixes
+    - Fix tab title masking ([#65](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/65))
     - Fix issue with matching empty string ([#67](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/67))
 
 ## [0.2.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.3)
