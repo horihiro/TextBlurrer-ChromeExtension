@@ -171,7 +171,7 @@
       let start = 0;
       while (true) {
         const match = contents.slice(start).match(pattern);
-        if (!match) break;
+        if (!match || match[0].length == 0) break;
         matches.push({
           keyword: match[0],
           index: start + match.index,
@@ -623,7 +623,7 @@
     const title = target.textContent;
     let result = title.match(pattern);
     let start = 0;
-    while (result) {
+    while (result && result[0].length > 0) {
       const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
       start += result.index + mask.length;
