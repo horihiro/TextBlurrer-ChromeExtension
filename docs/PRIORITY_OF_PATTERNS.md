@@ -4,6 +4,7 @@ The matching priority of keywords/patterns depends on the order of them (i.e. th
 
 ## Example
 In this example, there is the text  `abc` in a web page. 
+
 ![image](https://github.com/horihiro/TextBlurrer-ChromeExtension/assets/4566555/f2f07cf8-b641-4816-805e-5620c74968f8)
 
 If the following patterns is set, the only `ab` is blurred because `ab` in the page is matched by the 1st keyword `ab` at first.  
