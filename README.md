@@ -69,10 +69,20 @@ If you can try a development version, the following steps are needed.
   - Web Editor based on CodeMirror:  
     CodeMirror, which bases GitHub code editor, repairs its own contents automatically after blurring by this extension. Then blurring and repairing are repeated, it causes infinity loop. ([#62](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/62))
 
+    > [!NOTE]
+    > Not limited to CodeMirror, it's possible that an infinity loop and a site freezing happen caused by repeat of blurring and DOM tree keeping when the extension tries to blur text on a site composited by frameworks or components which try to keep DOM tree. 
+    > As long as I investigate, lexical is also such a component.
+
 # Dependencies
   - **[jsdiff](https://github.com/kpdecker/jsdiff)**: A JavaScript text differencing implementation (BSD 3-Clause License).
 
 # Change logs
+
+## [0.2.4](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.4)
+
+  - Bug fixes
+    - Fix tab title masking ([#65](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/65))
+    - Fix issue with matching empty string ([#67](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/67))
 
 ## [0.2.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.3)
 

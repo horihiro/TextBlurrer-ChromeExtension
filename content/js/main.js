@@ -171,7 +171,7 @@
       let start = 0;
       while (true) {
         const match = contents.slice(start).match(pattern);
-        if (!match) break;
+        if (!match || match[0].length == 0) break;
         matches.push({
           keyword: match[0],
           index: start + match.index,
@@ -234,8 +234,7 @@
         if (from.node == to.node) {
           const computedStyle = getComputedStyle(from.node.parentNode);
           const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
-          if (from.node.textContent === match.keyword && computedStyle.filter === 'none'
-            && !from.node.parentNode.isContentEditable) {
+          if (from.node.textContent === match.keyword && from.node.parentNode.childNodes.length == 1 && computedStyle.filter === 'none') {
             from.node.parentNode.classList.add(CLASS_NAME_BLURRED);
             from.node.parentNode.classList.add(CLASS_NAME_KEEP);
             if (options?.showValue) {
@@ -676,7 +675,7 @@
     const title = target.textContent;
     let result = title.match(pattern);
     let start = 0;
-    while (result) {
+    while (result && result[0].length > 0) {
       const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
       start += result.index + mask.length;
@@ -715,7 +714,15 @@
 
   const keywords2RegExp = (keywords, mode, matchCase) => {
     return new RegExp(
-      (keywords || '').split(/\n/).filter(k => !!k.trim()).map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`).join('|'),
+      (keywords || '').split(/\n/)
+        .filter(k => 
+          !!k.trim() && (
+            mode !== 'regexp' ||
+            !new RegExp(k).test('')
+          )
+        )
+        .map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`)
+        .join('|'),
       matchCase ? '' : 'i'
     );
   };
