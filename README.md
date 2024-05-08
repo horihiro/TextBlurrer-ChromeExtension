@@ -63,7 +63,7 @@ If you can try a development version, the following steps are needed.
     - Tab title masking
   - The following HTML elements are not supported:
     - HTML Canvas
-    - Inside of `contentEditable` element  
+    - TextArea
   - Web Terminal based on Xterm.js:  
     see [here](./docs/BLUR_ON_XTERMJS.md)
   - Web Editor based on CodeMirror:  
@@ -80,9 +80,13 @@ If you can try a development version, the following steps are needed.
 
 ## [0.2.4](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.4)
 
+  - New features
+    - Support `contentEditable`-enabled elements
   - Bug fixes
     - Fix tab title masking ([#65](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/65))
     - Fix issue with matching empty string ([#67](https://github.com/horihiro/TextBlurrer-ChromeExtension/issues/67))
+  - Chores
+    - Add documentation about priority of the keywords/patterns
 
 ## [0.2.3](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.3)
 
