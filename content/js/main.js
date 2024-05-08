@@ -7,7 +7,7 @@
 
   const SKIP_NODE_NAMES = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'HEAD', 'META', 'LINK', 'HTML', 'TEXTAREA', 'TITLE', '#comment'];
   const BLOCK_ELEMENT_NAMES = [
-    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
+    'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'BODY', 'CANVAS', 'DD', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION',
     'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN', 'NAV', 'NOSCRIPT',
     'OL', 'P', 'PRE', 'SCRIPT', 'SECTION', 'TABLE', 'TFOOT', 'UL', 'VIDEO'
   ];
@@ -70,10 +70,10 @@
       console.debug(`Skipped. Reason: CodeMirror`);
       return true;
     }
-    if (node.isContentEditable) {
-      console.debug(`Skipped. Reason: The node is contentEditable`);
-      return true;
-    }
+    // if (node.isContentEditable) {
+    //   console.debug(`Skipped. Reason: The node is contentEditable`);
+    //   return true;
+    // }
     return false;
   }
 
@@ -171,7 +171,7 @@
       let start = 0;
       while (true) {
         const match = contents.slice(start).match(pattern);
-        if (!match) break;
+        if (!match || match[0].length == 0) break;
         matches.push({
           keyword: match[0],
           index: start + match.index,
@@ -230,10 +230,11 @@
         if (!from.node.parentNode || !to.node.parentNode
           || shouldBeSkipped(from.node) || shouldBeSkipped(to.node)) return;
 
+        const currentRange = getCuretPosition(from.node);
         if (from.node == to.node) {
           const computedStyle = getComputedStyle(from.node.parentNode);
           const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
-          if (from.node.textContent === match.keyword && computedStyle.filter === 'none') {
+          if (from.node.textContent === match.keyword && from.node.parentNode.childNodes.length == 1 && computedStyle.filter === 'none') {
             from.node.parentNode.classList.add(CLASS_NAME_BLURRED);
             from.node.parentNode.classList.add(CLASS_NAME_KEEP);
             if (options?.showValue) {
@@ -284,15 +285,21 @@
           insertNodes.push({ node: nodeAfterBlurred, refNode: to.node, target: to.node.parentNode });
           removeNodes.push(to.node);
         }
-        insertNodes.forEach((n) => {
+        insertNodes.reduce((p, n) => {
           n.target.insertBefore(n.node, n.refNode);
-          if (!isBlurred(n.node)) return;
+          if (currentRange && removeNodes.includes(currentRange.endContainer) && p + n.node.textContent.length >= currentRange.endOffset) {
+            currentRange.startOffset = currentRange.endOffset = currentRange.endOffset - p;
+            currentRange.endContainer = currentRange.startContainer = n.node.nodeName === '#text' ? n.node : Array.from(n.node.childNodes).findLast(n => n.nodeName === '#text');
+            setCuretPosition(currentRange);
+          }
+          if (!isBlurred(n.node)) return p + n.node.textContent.length;
           const node = n.node.nodeName === '#text' ? n.node.parentNode : n.node;
           options?.showValue && node.setAttribute('title', match.keyword);
           const computedStyle = getComputedStyle(node);
           const size = Math.floor(parseFloat(computedStyle.fontSize) / 4);
           if (size > 5) node.style.filter += ` blur(${size}px)`;
-        });
+          return p + n.node.textContent.length
+        }, 0);
         removeNodes.forEach((n) => {
           n.parentNode.removeChild(n);
         });
@@ -314,6 +321,7 @@
         });
       }
     }
+    target.querySelectorAll(`.${CLASS_NAME_BLURRED}`).forEach((n) => { unblurCore(n) });
     blockAndBlur(pattern, target || document.body, options);
 
     const blurInShadowRoot = (target) => {
@@ -477,7 +485,7 @@
     if (!w.__observer) {
       w.__observer = new MutationObserver((records) => {
         if (!records.some(record => {
-          return record.removedNodes.length > 0 || Array.from(record.addedNodes).some(node => {
+          return record.type === 'characterData' || record.removedNodes.length > 0 || Array.from(record.addedNodes).some(node => {
             return !['SCRIPT', 'STYLE', '#comment'].includes(node.nodeName);
           });
         })) return;
@@ -486,13 +494,18 @@
             return target.contains(record.target);
           });
           if (isContained) return targets;
+          let blockElement = record.target;
+          while (blockElement && !BLOCK_ELEMENT_NAMES.includes(blockElement.nodeName)) {
+            blockElement = blockElement.parentNode;
+          }
+          if (!blockElement) return targets;
           const array = targets.reduce((prev, target) => {
-            if (!record.target.contains(target) && target != record.target) {
+            if (!blockElement.contains(target) && target != blockElement) {
               prev.push(target)
             }
             return prev;
           }, []);
-          array.push(record.target);
+          array.push(blockElement);
           return array;
         }, []);
         w.__observer.disconnect();
@@ -578,6 +591,7 @@
       if (n.style.length == 0) n.removeAttribute('style');
       return;
     }
+    const currentRange = getCuretPosition(n);
     const p = n.parentNode;
     n.childNodes.forEach((c) => {
       if (c.nodeName !== '#text') {
@@ -596,15 +610,53 @@
           continue;
         }
         textContainer.textContent += c.textContent;
+        if (currentRange) {
+          switch (currentRange.endContainer) {
+            case c:
+              currentRange.endContainer = currentRange.startContainer = textContainer;
+              currentRange.startOffset += (textContainer.textContent.length - c.textContent.length);
+              currentRange.endOffset += (textContainer.textContent.length - c.textContent.length);
+            case textContainer:
+              setCuretPosition(currentRange);
+          }
+        }
 
         if (n.nextSibling?.nodeName === '#text') {
           n.previousSibling.textContent += n.nextSibling.textContent;
+          if (currentRange) {
+            switch (currentRange.endContainer) {
+              case n.nextSibling:
+                currentRange.endContainer = currentRange.startContainer = n.previousSibling;
+                currentRange.endOffset = currentRange.startOffset = n.previousSibling.textContent.length - n.nextSibling.textContent.length + currentRange.startOffset;
+              case n.previousSibling:
+                setCuretPosition(currentRange);
+            }
+          }
           p.removeChild(n.nextSibling);
         }
         break;
       } while (true);
     });
     p.removeChild(n);
+  };
+
+  const getCuretPosition = (target) => {
+    const selection = window.getSelection();
+    if (!target.isContentEditable && (!target.parentNode || !target.parentNode.isContentEditable) || selection.rangeCount == 0) return null;
+    return {
+      startContainer: selection.anchorNode,
+      startOffset: selection.anchorOffset,
+      endContainer: selection.focusNode,
+      endOffset: selection.focusOffset,
+    };
+  }
+  const setCuretPosition = (newRange) => {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.setStart(newRange.startContainer, newRange.startOffset);
+    range.setEnd(newRange.endContainer, newRange.endOffset);
+    selection.removeAllRanges();
+    selection.addRange(range);
   };
 
   const unblurTabTitle = () => {
@@ -623,7 +675,7 @@
     const title = target.textContent;
     let result = title.match(pattern);
     let start = 0;
-    while (result) {
+    while (result && result[0].length > 0) {
       const mask = new Array(result[0].length).fill('*').join('');
       target.textContent = target.textContent.replace(result[0], mask);
       start += result.index + mask.length;
@@ -662,7 +714,15 @@
 
   const keywords2RegExp = (keywords, mode, matchCase) => {
     return new RegExp(
-      (keywords || '').split(/\n/).filter(k => !!k.trim()).map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`).join('|'),
+      (keywords || '').split(/\n/)
+        .filter(k => 
+          !!k.trim() && (
+            mode !== 'regexp' ||
+            !new RegExp(k).test('')
+          )
+        )
+        .map(k => `(?:${mode === 'regexp' ? k.trim() : escapeRegExp(k.trim())})`)
+        .join('|'),
       matchCase ? '' : 'i'
     );
   };
