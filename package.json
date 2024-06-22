@@ -1,0 +1,31 @@
+{
+  "name": "template",
+  "description": "My Chrome Extension",
+  "version": "1.0.0",
+  "scripts": {
+    "clean": "node -e \"require('fs-extra').removeSync('./dist')\"",
+    "build:mkdir": "node -e \"const fs = require('fs-extra'); fs.ensureDirSync('./dist/popup/js'); fs.ensureDirSync('./dist/contentScript'); fs.ensureDirSync('./dist/background');\"",
+    "build": "npm run clean && npm run build:mkdir && npm run build:background && npm run build:content && npm run build:popup && npm run build:copyFiles",
+    "build:dev": "npm run clean && npm run build:mkdir && npm run build:dev:background && npm run build:dev:content && npm run build:dev:popup && npm run build:copyFiles",
+    "build:background": "esbuild ./src/background/background.ts --bundle --minify --outfile=./dist/background/service-worker.js",
+    "build:content": "esbuild ./src/content/contentScript.ts --bundle --minify --outfile=./dist/contentScript/main.js ",
+    "build:popup": " esbuild ./src/popup/popup.ts --bundle --minify --outfile=./dist/popup/js/bundle.js ",
+    "build:dev:background": "esbuild ./src/background/background.ts --bundle --sourcemap=inline --outfile=./dist/background/service-worker.js",
+    "build:dev:content": "esbuild ./src/content/contentScript.ts --bundle --sourcemap=inline --outfile=./dist/contentScript/main.js ",
+    "build:dev:popup": " esbuild ./src/popup/popup.ts --bundle --sourcemap=inline --outfile=./dist/popup/js/bundle.js ",
+    "build:copyFiles": "node -e \"const fs = require('fs-extra'); fs.copySync('./public', './dist/popup');\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.248",
+    "@types/diff": "^5.2.1",
+    "esbuild": "^0.19.5",
+    "fs-extra": "^11.1.1",
+    "typescript": "^5.2.2"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "diff": "^5.2.0"
+  }
+}

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Text Blurrer",
-  "version": "0.2.4",
-  "version_name": "0.2.4",
+  "version": "0.2.5",
+  "version_name": "0.2.5",
   "description": "Blurring sensitive specified text/keyword.",
   "permissions": [
     "storage",
@@ -10,11 +10,11 @@
   ],
   "background": {
     "type": "module",
-    "service_worker": "background/service-worker.js"
+    "service_worker": "dist/background/service-worker.js"
   },
   "action": {
     "default_icon": "img/icon128.png",
-    "default_popup": "popup/main.html"
+    "default_popup": "dist/popup/main.html"
   },
   "icons": {
     "16": "img/icon16.png",
@@ -28,8 +28,7 @@
         "http://*/*"
       ],
       "js": [
-        "content/js/diff.min.js",
-        "content/js/main.js"
+        "dist/contentScript/main.js"
       ]
     }
   ],

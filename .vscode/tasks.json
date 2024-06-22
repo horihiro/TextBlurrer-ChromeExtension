@@ -3,37 +3,12 @@
   "tasks": [
     {
       "type": "shell",
-      "label": "Launch Chrome",
-      "windows": {
-        "command": "${env:PROGRAMFILES}\\Google\\Chrome\\Application\\chrome.exe\"",
-        "args": [
-          "--remote-debugging-port=9222",
-          "--load-extension=${workspaceFolder}", // this is the path to the extension folder
-          "https://example.com/"
-        ],
-        "options": {
-          "env": {
-            "CHROME_DEVELOPER_TOOLS": true
-          }
-        }
+      "label": "build",
+      "command": "npm run build:dev",
+      "group": {
+        "kind": "build",
+        "isDefault": true
       }
-    },
-    {
-      "type": "shell",
-      "label": "Launch Edge",
-      "windows": {
-        "command": "${env:ProgramFiles(x86)}\\Microsoft\\Edge\\Application\\msedge.exe\"",
-        "args": [
-          "--remote-debugging-port=9222",
-          "--load-extension=${workspaceFolder}", // this is the path to the extension folder
-          "https://example.com/"
-        ],
-        "options": {
-          "env": {
-            "CHROME_DEVELOPER_TOOLS": true
-          }
-        }
-      },
     }
   ]
 }

@@ -1,20 +1,23 @@
-import { escapeRegExp } from '../../util/common.js';
+import { escapeRegExp } from '../utils/common';
 
 document.addEventListener('DOMContentLoaded', async (e) => {
   const { status, keywords, mode, matchCase, showValue, blurInput, blurTitle, exclusionUrls } = (await chrome.storage.local.get(['status', 'keywords', 'mode', 'matchCase', 'showValue', 'blurInput', 'blurTitle', 'exclusionUrls']));
 
-  const applyButton = document.querySelector('#applyButton');
-  const patternInput = document.querySelector('#patternInput');
-  const statusCheckbox = document.querySelector('#statusCheckbox');
-  const caseCheckbox = document.querySelector('#caseCheckbox');
-  const regexpCheckbox = document.querySelector('#regexpCheckbox');
-  const showValueCheckbox = document.querySelector('#showValueCheckbox');
-  const blurInputCheckbox = document.querySelector('#blurInputCheckbox');
-  const blurTitleCheckbox = document.querySelector('#blurTitleCheckbox');
-  const _bufferTextArea = document.querySelector('#_bufferTextArea');
-  const addUrlsInCurrentTab = document.querySelector('#addUrlsInCurrentTab');
-  const exclusionInput = document.querySelector('#exclusionInput');
+  const applyButton: HTMLButtonElement | null = document.querySelector('#applyButton');
+  const patternInput: HTMLInputElement | null = document.querySelector('#patternInput');
+  const statusCheckbox: HTMLInputElement | null = document.querySelector('#statusCheckbox');
+  const caseCheckbox: HTMLInputElement | null = document.querySelector('#caseCheckbox');
+  const regexpCheckbox: HTMLInputElement | null = document.querySelector('#regexpCheckbox');
+  const showValueCheckbox: HTMLInputElement | null = document.querySelector('#showValueCheckbox');
+  const blurInputCheckbox: HTMLInputElement | null = document.querySelector('#blurInputCheckbox');
+  const blurTitleCheckbox: HTMLInputElement | null = document.querySelector('#blurTitleCheckbox');
+  const _bufferTextArea: HTMLTextAreaElement | null = document.querySelector('#_bufferTextArea');
+  const addUrlsInCurrentTab: HTMLSpanElement | null = document.querySelector('#addUrlsInCurrentTab');
+  const exclusionTextArea: HTMLTextAreaElement | null = document.querySelector('#exclusionTextArea');
 
+  if (!applyButton || !patternInput || !statusCheckbox || !caseCheckbox || !regexpCheckbox || !showValueCheckbox || !blurInputCheckbox || !blurTitleCheckbox || !_bufferTextArea || !addUrlsInCurrentTab || !exclusionTextArea) {
+    throw new Error('Element not found');
+  }
   const COLOR_DEFAULT = getComputedStyle(_bufferTextArea).getPropertyValue('background-color');
   const COLOR_WARNING = '#FFA500';
   const COLOR_ERROR = '#FF4500';
@@ -41,8 +44,12 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       return;
     }
     if (e.key === 'F' && e.altKey && e.shiftKey) {
-      const textarea = document.querySelector('#tab-exclusion:checked~#tab-panel-exclusion textarea')
+      const textarea:HTMLTextAreaElement | null = document.querySelector('#tab-exclusion:checked~#tab-panel-exclusion textarea')
         || document.querySelector('#tab-keywords:checked~#tab-panel-keywords textarea');
+      if (!textarea) {
+        e.preventDefault();
+        return;
+      } 
       textarea.focus();
       textarea.value = textarea.value.split(/\n/).filter(l => l.trim() !== '').join('\n');
       e.preventDefault();
@@ -59,21 +66,23 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     if (message.method !== 'getUrlResponse') return;
 
     const escapedUrl = escapeRegExp(message.url);
-    const currentValue = exclusionInput.value.split(/\n/);
+    const currentValue = exclusionTextArea.value.split(/\n/);
     if (currentValue.includes(escapedUrl) || currentValue.filter(l => !!l).some(v => new RegExp(v).test(message.url))) return;
 
-    exclusionInput.value = `${exclusionInput.value.trimEnd()}
+    exclusionTextArea.value = `${exclusionTextArea.value.trimEnd()}
 ^${escapedUrl}$`;
-    await renderBackground({ target: exclusionInput });
+    await renderBackground({ target: exclusionTextArea });
     applyButton.disabled = false;
-    exclusionInput.focus();
+    exclusionTextArea.focus();
   };
   chrome.runtime.onMessage.addListener(onMessageListener);
 
   addUrlsInCurrentTab.addEventListener('click', async (e) => {
     if (!statusCheckbox.checked) return;
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.tabs.sendMessage(tabs[0].id, { method: 'getUrl' });
+    const tabId = tabs?.[0]?.id;
+    if (!tabId) return;
+    await chrome.tabs.sendMessage(tabId, { method: 'getUrl' });
   });
 
   const hasCaptureGroups = (regexStr) => {
@@ -105,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       const cs = window.getComputedStyle(textarea);
       const pl = parseInt(cs.paddingLeft);
       const pr = parseInt(cs.paddingRight);
-      const lh = parseInt(cs.lineHeight);
+      let lh = parseInt(cs.lineHeight);
 
       // [cs.lineHeight] may return 'normal', which means line height = font size.
       if (isNaN(lh)) lh = parseInt(cs.fontSize);
@@ -136,7 +145,8 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       const array = await prev;
       const result = {
         numOfLine,
-        isValid: true
+        isValid: true,
+        reason: '',
       };
       if (onlyLineCounting) {
         // if (curr.length == 1) result.reason = 'Warning:\n  One character matching might cause performance issue.';
@@ -170,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async (e) => {
     applyButton.disabled = !validationResults[e.target.id].every(r => r.isValid) ||
       (
         patternInput.value === savedKeywords &&
-        exclusionInput.value === savedExclusionUrls &&
+        exclusionTextArea.value === savedExclusionUrls &&
         caseCheckbox.checked === savedMatchCase &&
         showValueCheckbox.checked === savedShowValue &&
         regexpCheckbox.checked === savedMode &&
@@ -198,19 +208,20 @@ document.addEventListener('DOMContentLoaded', async (e) => {
       e.target.setAttribute('rows', start > minRowTextArea ? start : minRowTextArea);
     }
 
-    document.querySelector(`head > style#style-${e.target.id}`).innerHTML = `
+    const style = document.querySelector(`head > style#style-${e.target.id}`);
+    style && (style.innerHTML = `
 textarea#${e.target.id} {
   background: linear-gradient(
   ${bgColors.join(',\n  ')}
   ) 0 8px no-repeat, ${COLOR_DEFAULT};
-}`;
+}`);
   }
 
   applyButton.addEventListener('click', async (e) => {
     await chrome.storage.local.set({
       'status': !statusCheckbox.checked ? 'disabled' : '',
       'keywords': patternInput.value.replace(/\u00a0/g, ' '),
-      'exclusionUrls': exclusionInput.value,
+      'exclusionUrls': exclusionTextArea.value,
       'mode': regexpCheckbox.checked ? 'regexp' : 'text',
       'matchCase': caseCheckbox.checked,
       'showValue': showValueCheckbox.checked,
@@ -219,40 +230,44 @@ textarea#${e.target.id} {
     });
     patternInput.focus();
     savedKeywords = patternInput.value;
-    savedExclusionUrls = exclusionInput.value;
+    savedExclusionUrls = exclusionTextArea.value;
     savedMode = regexpCheckbox.checked;
     savedMatchCase = caseCheckbox.checked;
     savedShowValue = showValueCheckbox.checked;
     savedBlurInput = blurInputCheckbox.checked;
     savedBlurTitle = blurTitleCheckbox.checked;
-    e.target.disabled = true;
+    e.target && e.target instanceof HTMLButtonElement && (e.target.disabled = true)
   });
 
   statusCheckbox.addEventListener('change', async (e) => {
+    if (!(e.target) || !(e.target instanceof HTMLInputElement)) return;
+
     caseCheckbox.disabled =
       showValueCheckbox.disabled =
       blurInputCheckbox.disabled =
       blurTitleCheckbox.disabled =
       regexpCheckbox.disabled =
       patternInput.disabled =
-      exclusionInput.disabled = !e.target.checked;
+      exclusionTextArea.disabled = !e.target.checked;
     validationResults[patternInput.id] = await validateLines(patternInput, !regexpCheckbox.checked);
-    validationResults[exclusionInput.id] = await validateLines(exclusionInput, !regexpCheckbox.checked);
+    validationResults[exclusionTextArea.id] = await validateLines(exclusionTextArea, !regexpCheckbox.checked);
     addUrlsInCurrentTab.style.cursor = e.target.checked ? '' : 'auto';
 
-    applyButton.disabled = !e.target.checked || !validationResults[patternInput.id].every(r => r.isValid) || !validationResults[exclusionInput.id].every(r => r.isValid);
+    applyButton.disabled = !e.target.checked || !validationResults[patternInput.id].every(r => r.isValid) || !validationResults[exclusionTextArea.id].every(r => r.isValid);
 
     await chrome.storage.local.set({
       "status": !e.target.checked ? 'disabled' : ''
     });
     if (!e.target.checked) {
-      document.querySelector(`head > style#style-${patternInput.id}`).innerHTML = '';
-      document.querySelector(`head > style#style-${exclusionInput.id}`).innerHTML = '';
+      const inputStyle = document.querySelector(`head > style#style-${patternInput.id}`);
+      inputStyle && (inputStyle.innerHTML = '')
+      const textAreaStyle = document.querySelector(`head > style#style-${exclusionTextArea.id}`);
+      textAreaStyle && (textAreaStyle.innerHTML = '')
       return;
     }
 
     await renderBackground({ target: patternInput });
-    await renderBackground({ target: exclusionInput });
+    await renderBackground({ target: exclusionTextArea });
 
     patternInput.focus();
   });
@@ -288,10 +303,10 @@ textarea#${e.target.id} {
   }
   const onMouseMove = (e) => {
     if (e.offsetY + e.target.scrollTop - textAreaPaddingTop < 0) return;
-    const row = parseInt((e.offsetY + e.target.scrollTop - textAreaPaddingTop) / textAreaLineHeight) + 1;
+    const row = parseInt(`${(e.offsetY + e.target.scrollTop - textAreaPaddingTop) / textAreaLineHeight}`) + 1;
     if (e.target.pointedRow == row) return;
     e.target.pointedRow = row;
-    validationResults[e.target.id].reduce((prev, curr) => {
+    validationResults[e.target.id]?.reduce((prev, curr) => {
       if (prev < 0) return -1;
       prev -= curr.numOfLine;
       if (prev > 0) {
@@ -305,21 +320,24 @@ textarea#${e.target.id} {
   const onMouseOut = (e) => {
     e.target.pointedRow = -1;
   };
-  document.head.appendChild(document.createElement('style'));
-  document.head.lastChild.setAttribute('id', `style-${patternInput.id}`);
+
+  const inputStyle = document.createElement('style');
+  document.head.appendChild(inputStyle);
+  inputStyle.setAttribute('id', `style-${patternInput.id}`);
   patternInput.addEventListener('scroll', renderBackground);
   patternInput.addEventListener('scroll', onScroll);
   patternInput.addEventListener('input', renderBackground);
   patternInput.addEventListener('mousemove', onMouseMove, false);
   patternInput.addEventListener('mouseout', onMouseOut);
 
-  document.head.appendChild(document.createElement('style'));
-  document.head.lastChild.setAttribute('id', `style-${exclusionInput.id}`);
-  exclusionInput.addEventListener('scroll', renderBackground);
-  exclusionInput.addEventListener('scroll', onScroll);
-  exclusionInput.addEventListener('input', renderBackground);
-  exclusionInput.addEventListener('mousemove', onMouseMove, false);
-  exclusionInput.addEventListener('mouseout', onMouseOut);
+  const textAreaStyle = document.createElement('style');
+  document.head.appendChild(textAreaStyle);
+  textAreaStyle.setAttribute('id', `style-${exclusionTextArea.id}`);
+  exclusionTextArea.addEventListener('scroll', renderBackground);
+  exclusionTextArea.addEventListener('scroll', onScroll);
+  exclusionTextArea.addEventListener('input', renderBackground);
+  exclusionTextArea.addEventListener('mousemove', onMouseMove, false);
+  exclusionTextArea.addEventListener('mouseout', onMouseOut);
 
   statusCheckbox.checked = status !== 'disabled';
   savedMatchCase = caseCheckbox.checked = matchCase;
@@ -328,7 +346,7 @@ textarea#${e.target.id} {
   savedBlurTitle = blurTitleCheckbox.checked = blurTitle;
   savedMode = regexpCheckbox.checked = mode === 'regexp';
   savedKeywords = patternInput.value = keywords || '';
-  savedExclusionUrls = exclusionInput.value = exclusionUrls || '';
+  savedExclusionUrls = exclusionTextArea.value = exclusionUrls || '';
 
   caseCheckbox.disabled =
     blurInputCheckbox.disabled =
@@ -336,14 +354,14 @@ textarea#${e.target.id} {
     showValueCheckbox.disabled =
     regexpCheckbox.disabled =
     patternInput.disabled =
-    exclusionInput.disabled =
+    exclusionTextArea.disabled =
     applyButton.disabled = !statusCheckbox.checked;
   addUrlsInCurrentTab.style.cursor = statusCheckbox.checked ? '' : 'auto';
 
   patternInput.focus();
   if (statusCheckbox.checked) {
     await renderBackground({ target: patternInput });
-    await renderBackground({ target: exclusionInput });
+    await renderBackground({ target: exclusionTextArea });
   }
   applyButton.disabled = true;
 });

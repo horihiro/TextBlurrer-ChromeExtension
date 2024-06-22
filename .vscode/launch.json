@@ -3,17 +3,28 @@
   "configurations": [
     {
       "type": "chrome",
-      "request": "attach",
+      "request": "launch",
       "name": "Debug on Chrome",
       "port": 9222,
-      "preLaunchTask": "Launch Chrome"
+      "webRoot": "${workspaceFolder}",
+      "runtimeArgs": [
+        "--load-extension=${workspaceFolder}",
+        "--enable-extensions-developer-mode",
+        "https://example.com",
+      ],
+      "preLaunchTask": "build"
     },
     {
       "type": "msedge",
-      "request": "attach",
-      "name": "Debug on Edge",
+      "request": "launch",
+      "name": "Attach to Edge",
       "port": 9222,
-      "preLaunchTask": "Launch Edge"
+      "runtimeArgs": [
+        "--load-extension=${workspaceFolder}",
+        "--enable-extensions-developer-mode",
+        "https://example.com",
+      ],
+      "preLaunchTask": "build"
     }
   ]
 }
