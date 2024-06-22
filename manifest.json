@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Text Blurrer",
-  "version": "0.2.4",
-  "version_name": "0.2.4",
+  "version": "0.2.5",
+  "version_name": "0.2.5",
   "description": "Blurring sensitive specified text/keyword.",
   "permissions": [
     "storage",
