@@ -11,8 +11,17 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+      - name: install dependencies and build
+        run: |
+          npm install
+          npm run build
       - name: zip release
-        run: zip -r release.zip background content img popup util CREDITS.txt LICENSE manifest.json NOTICE.md README.md
+        run: zip -r release.zip dist img CREDITS.txt LICENSE manifest.json NOTICE.md README.md
       - name: Upload release attachment
         uses: softprops/action-gh-release@v1
         with:
