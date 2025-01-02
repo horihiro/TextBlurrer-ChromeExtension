@@ -1,4 +1,9 @@
 # Chrome Extension for blurring text 
+![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/mbikojdgkmpjfackcmiliemgmkdkbbcl)
+![Chrome Web Store Last Updated](https://img.shields.io/chrome-web-store/last-updated/mbikojdgkmpjfackcmiliemgmkdkbbcl)
+![Chrome Web Store Stars](https://img.shields.io/chrome-web-store/stars/mbikojdgkmpjfackcmiliemgmkdkbbcl)
+![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/mbikojdgkmpjfackcmiliemgmkdkbbcl)
+
 This extension can blur specified text/keywords in web pages.
 
 # Demo
