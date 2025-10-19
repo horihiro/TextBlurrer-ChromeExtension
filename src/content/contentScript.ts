@@ -6,6 +6,11 @@ import { DOMBlurrer } from './blurrer/DOMBlurrer';
 import { TitleBlurrer } from './blurrer/TitleBlurrer';
 import { InputBlurrer } from './blurrer/InputBlurrer';
 
+// Default exclusion patterns for sites that are known to have issues with text blurring
+const DEFAULT_EXCLUSION_PATTERNS = [
+  'https?://([^/]*\\.)?kogama\\.com(/.*)?', // Kogama gaming platform
+];
+
 (async () => {
   const blurrers: IBlurrer[] = [
     new DOMBlurrer(),
@@ -36,8 +41,11 @@ import { InputBlurrer } from './blurrer/InputBlurrer';
       catch (e) { console.error(e); }
     });
     if (status === 'disabled' || !keywords || keywords.trim() === '') return;
+    
+    // Combine user exclusions with default exclusions
     const exclusionUrlArray = exclusionUrls ? exclusionUrls.split(/\n/).filter(l => !!l) : [];
-    if (exclusionUrlArray.length > 0 && new RegExp(exclusionUrlArray.map(l => `(?:${l})`).join('|')).test(location.href)) return;
+    const allExclusions = [...DEFAULT_EXCLUSION_PATTERNS, ...exclusionUrlArray];
+    if (allExclusions.length > 0 && new RegExp(allExclusions.map(l => `(?:${l})`).join('|')).test(location.href)) return;
 
     const pattern = keywords2RegExp(keywords, mode, !!matchCase);
     try {
