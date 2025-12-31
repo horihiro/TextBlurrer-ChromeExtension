@@ -21,7 +21,7 @@ jobs:
           npm install
           npm run build
       - name: zip release
-        run: zip -r release.zip dist img CREDITS.txt LICENSE manifest.json NOTICE.md README.md
+        run: zip -r release.zip dist img CREDITS.txt LICENSE manifest.json NOTICE.md README.md CHANGELOG.md
       - name: Upload release attachment
         uses: softprops/action-gh-release@v1
         with:
