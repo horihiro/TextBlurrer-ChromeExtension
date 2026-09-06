@@ -33,7 +33,7 @@ export class DOMBlurrer implements IBlurrer {
       const BLURRER_COMMON_STYLE = target.querySelector(`#${ID_BLURRER_COMMON_STYLE}`);
       BLURRER_COMMON_STYLE && BLURRER_COMMON_STYLE.parentNode.removeChild(BLURRER_COMMON_STYLE);
 
-      array.push(...Array.from(target.querySelectorAll(`.${CLASS_NAME_BLURRED}:not([class~="${CLASS_NAME_IGNORE}"]`)));
+      array.push(...Array.from(target.querySelectorAll(`.${CLASS_NAME_BLURRED}:not([class~="${CLASS_NAME_IGNORE}"])`)));
       return array;
     }, []);
     this.observedNodes.length = 0;

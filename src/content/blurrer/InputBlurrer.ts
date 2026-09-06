@@ -22,10 +22,23 @@ const BLURRER_INPUT_STYLE = `.${CLASS_NAME_MASK_CONTAINER} {
   white-space-collapse: preserve !important;
 }`;
 
+type InputListenerRefs = {
+  input: EventListener;
+  focus: EventListener;
+  blur: EventListener;
+};
 
 export class InputBlurrer extends DOMBlurrer {
 
-  private inputObjects: { element: HTMLInputElement, masks: any, isObserved: boolean, pattern: RegExp, options: BlurOptions, root: Element }[] = [];
+  private inputObjects: {
+    element: HTMLInputElement,
+    masks: any,
+    isObserved: boolean,
+    pattern: RegExp,
+    options: BlurOptions,
+    root: Element,
+    listeners?: InputListenerRefs
+  }[] = [];
 
   blur(pattern: RegExp, options: BlurOptions, target: Element) {
     const observed = target || document.body;
@@ -56,9 +69,11 @@ export class InputBlurrer extends DOMBlurrer {
     delete this.observer
 
     this.inputObjects.forEach((inputObj) => {
-      inputObj.element.removeEventListener('input', this.inputOnInput);
-      inputObj.element.removeEventListener('focus', this.inputOnFocus);
-      inputObj.element.removeEventListener('blur', this.inputOnBlur);
+      if (!inputObj.listeners) return;
+
+      inputObj.element.removeEventListener('input', inputObj.listeners.input);
+      inputObj.element.removeEventListener('focus', inputObj.listeners.focus);
+      inputObj.element.removeEventListener('blur', inputObj.listeners.blur);
     });
     this.inputObjects.length = 0;
     const m = this.observedNodes.reduce((array, target) => {
@@ -106,9 +121,16 @@ export class InputBlurrer extends DOMBlurrer {
       })();
       if (inputObj.isObserved) return inputs;
       inputObj.isObserved = true;
-      inputObj.element.addEventListener('input', this.inputOnInput.bind(inputObj));
-      inputObj.element.addEventListener('focus', this.inputOnFocus.bind(this));
-      inputObj.element.addEventListener('blur', this.inputOnBlur.bind(this));
+      const listeners: InputListenerRefs = {
+        input: this.inputOnInput.bind(inputObj),
+        focus: this.inputOnFocus.bind(this),
+        blur: this.inputOnBlur.bind(this),
+      };
+
+      inputObj.listeners = listeners;
+      inputObj.element.addEventListener('input', listeners.input);
+      inputObj.element.addEventListener('focus', listeners.focus);
+      inputObj.element.addEventListener('blur', listeners.blur);
       inputObj.element.dispatchEvent(new InputEvent('input', { data: inputObj.element.value }));
       return inputs;
     }, this.inputObjects);
@@ -117,7 +139,7 @@ export class InputBlurrer extends DOMBlurrer {
 
   inputOnInput(e: Event) {
     const input = e.target as HTMLInputElement;
-    const inputObj = (this as unknown) as {options: BlurOptions, pattern: RegExp, root: Element, masks: {}}; // .inputObjects.filter(i => i.element == input)[0];
+    const inputObj = (this as unknown) as { options: BlurOptions, pattern: RegExp, root: Element, masks: {} }; // .inputObjects.filter(i => i.element == input)[0];
     if (!inputObj) return;
 
     const { options, pattern, root } = inputObj;
@@ -198,8 +220,7 @@ export class InputBlurrer extends DOMBlurrer {
       mask.style.setProperty('left', `${blurredSpan.offsetLeft + input.offsetLeft
         + (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-left-width')))
         }px`);
-      mask.style.setProperty('top', `${
-        input.offsetTop + (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-top-width')) + parseFloat(inputStyle.getPropertyValue('padding-top'))) + verticalGap / 2}px`);
+      mask.style.setProperty('top', `${input.offsetTop + (isBorderBox ? 0 : parseFloat(inputStyle.getPropertyValue('border-top-width')) + parseFloat(inputStyle.getPropertyValue('padding-top'))) + verticalGap / 2}px`);
       const maskBoundingBox = mask.getBoundingClientRect();
       const tmpWidth = inputBoundingBox.width + inputBoundingBox.left - maskBoundingBox.left - parseFloat(inputStyle.getPropertyValue('border-left-width'));
       mask.style.setProperty('width', `${tmpWidth > blurredBoundingBox.width

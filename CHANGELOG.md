@@ -1,4 +1,10 @@
 # Change logs
+## [0.2.7](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.7)
+
+  - Bug fixes
+    - Correct `querySelectorAll` syntax for blurred elements
+    - Improve input event handling by managing listeners more reliably
+
 ## [0.2.6](https://github.com/horihiro/TextBlurrer-ChromeExtension/releases/tag/0.2.6)
   - Bug fixes
     - Improve mask positioning for `input` elements by adding 'line-height' and refining top calculation
